@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { HeartHandshake, Leaf, Swords, Sparkles, Trophy, UserRound } from 'lucide-react'
-import { Starfield } from './components/Starfield'
+import { Leaf, Swords, Sparkles, Trophy, UserRound } from 'lucide-react'
 import { JadeSectWorld } from './components/JadeSectWorld'
 import { Button } from './components/ui/button'
 import { Card } from './components/ui/card'
@@ -31,6 +30,8 @@ type GameState = {
   battles: Battle[]
 }
 
+type Panel = 'me' | 'cultivate' | 'rank' | 'log'
+
 const emptyState: GameState = { user: null, leaderboard: [], battles: [] }
 
 async function api(path: string, body?: Record<string, string>) {
@@ -46,6 +47,7 @@ async function api(path: string, body?: Record<string, string>) {
 
 export default function App() {
   const [state, setState] = useState<GameState>(emptyState)
+  const [panel, setPanel] = useState<Panel>('me')
   const [mode, setMode] = useState<'login' | 'register'>('register')
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
@@ -68,6 +70,7 @@ export default function App() {
       const payload = await api(`/api/${mode}`, { name, password })
       setState(payload)
       setNotice(mode === 'register' ? 'Your star badge is ready!' : 'Welcome back, sweet cultivator!')
+      setPanel('cultivate')
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'Something went poof.')
     } finally {
@@ -100,96 +103,102 @@ export default function App() {
 
   return (
     <main className="shell">
-      <Starfield />
-      <section className="hero-panel">
-        <div className="hero-copy">
+      <section className="top-bar">
+        <div>
           <p className="soft-label">Starry Clouds</p>
-          <h1>Jade skies, tiny buddies, cozy cultivation.</h1>
-          <p>A brutally simple online-ish xianxia hangout: enter the sect, walk around, gather herbs, meditate, and gently spar.</p>
+          <h1>Jade skies, tiny buddies.</h1>
+        </div>
+        <div className="top-stats">
+          <span><Leaf size={16} /> {herbs}</span>
+          <span>{state.user ? `Lv ${state.user.level}` : 'Guest'}</span>
         </div>
       </section>
 
       <section className="world-section">
-        <Card className="world-panel">
-          <div className="world-topline">
-            <div>
-              <p className="soft-label">Cloud Sect Hub</p>
-              <h2>Walk the little jade platform</h2>
-            </div>
-            <div className="mini-stats">
-              <span><Leaf size={16} /> {herbs} herbs</span>
-              <span><HeartHandshake size={16} /> cozy online vibes</span>
-            </div>
-          </div>
-          <JadeSectWorld onWorldEvent={handleWorldEvent} />
-        </Card>
+        <JadeSectWorld onWorldEvent={handleWorldEvent} />
       </section>
 
-      <section className="game-grid">
-        <Card className="auth-panel">
-          {state.user ? (
-            <>
-              <div className="player-card">
-                <span className="avatar"><UserRound size={28} /></span>
-                <div>
-                  <h2>{state.user.name}</h2>
-                  <p>{state.user.title}</p>
+      <nav className="dock" aria-label="Game menu">
+        <Button variant={panel === 'me' ? 'default' : 'ghost'} onClick={() => setPanel('me')}><UserRound size={18} /> Me</Button>
+        <Button variant={panel === 'cultivate' ? 'default' : 'ghost'} onClick={() => setPanel('cultivate')}><Sparkles size={18} /> Cultivate</Button>
+        <Button variant={panel === 'rank' ? 'default' : 'ghost'} onClick={() => setPanel('rank')}><Trophy size={18} /> Rank</Button>
+        <Button variant={panel === 'log' ? 'default' : 'ghost'} onClick={() => setPanel('log')}>Log</Button>
+      </nav>
+
+      <section className="single-panel">
+        {panel === 'me' && (
+          <Card className="drawer-card">
+            {state.user ? (
+              <>
+                <div className="player-card">
+                  <span className="avatar"><UserRound size={28} /></span>
+                  <div>
+                    <h2>{state.user.name}</h2>
+                    <p>{state.user.title}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="stats">
-                <span>Lv {state.user.level}</span>
-                <span>{state.user.jade} jade</span>
-                <span>{state.user.wins}W / {state.user.losses}L</span>
-              </div>
-              <div className="qi-bar" aria-label="Qi progress">
-                <span style={{ width: `${progress}%` }} />
-              </div>
-              <Button variant="panel" onClick={() => action('logout')} disabled={busy}>Leave gate</Button>
-            </>
-          ) : (
-            <>
-              <h2>Enter the sect</h2>
-              <div className="tabs">
-                <Button variant={mode === 'register' ? 'default' : 'ghost'} onClick={() => setMode('register')}>Register</Button>
-                <Button variant={mode === 'login' ? 'default' : 'ghost'} onClick={() => setMode('login')}>Login</Button>
-              </div>
-              <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Cultivator name" />
-              <input value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Secret phrase" type="password" />
-              <Button onClick={submitAuth} disabled={busy}>{mode === 'register' ? 'Receive badge' : 'Open gate'}</Button>
-            </>
-          )}
-          <p className="notice">{notice}</p>
-        </Card>
+                <div className="stats">
+                  <span>Lv {state.user.level}</span>
+                  <span>{state.user.jade} jade</span>
+                  <span>{state.user.wins}W / {state.user.losses}L</span>
+                </div>
+                <div className="qi-bar" aria-label="Qi progress">
+                  <span style={{ width: `${progress}%` }} />
+                </div>
+                <Button variant="panel" onClick={() => action('logout')} disabled={busy}>Leave gate</Button>
+              </>
+            ) : (
+              <>
+                <h2>Enter the sect</h2>
+                <div className="tabs">
+                  <Button variant={mode === 'register' ? 'default' : 'ghost'} onClick={() => setMode('register')}>Register</Button>
+                  <Button variant={mode === 'login' ? 'default' : 'ghost'} onClick={() => setMode('login')}>Login</Button>
+                </div>
+                <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Cultivator name" />
+                <input value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Secret phrase" type="password" />
+                <Button onClick={submitAuth} disabled={busy}>{mode === 'register' ? 'Receive badge' : 'Open gate'}</Button>
+              </>
+            )}
+            <p className="notice">{notice}</p>
+          </Card>
+        )}
 
-        <Card className="loop-panel primary-actions">
-          <h2>Daily cultivation</h2>
-          <div className="actions">
-            <Button onClick={() => action('train')} disabled={!state.user || busy}><Sparkles size={18} /> Meditate</Button>
-            <Button onClick={() => action('pve')} disabled={!state.user || busy}><Swords size={18} /> PvE spirit quest</Button>
-            <Button onClick={() => action('pvp')} disabled={!state.user || busy}><Trophy size={18} /> PvP cloud duel</Button>
-          </div>
-        </Card>
+        {panel === 'cultivate' && (
+          <Card className="drawer-card">
+            <h2>Daily cultivation</h2>
+            <div className="actions">
+              <Button onClick={() => action('train')} disabled={!state.user || busy}><Sparkles size={18} /> Meditate</Button>
+              <Button onClick={() => action('pve')} disabled={!state.user || busy}><Swords size={18} /> Spirit quest</Button>
+              <Button onClick={() => action('pvp')} disabled={!state.user || busy}><Trophy size={18} /> Cloud duel</Button>
+            </div>
+            <p className="notice">{notice}</p>
+          </Card>
+        )}
 
-        <Card>
-          <h2>Leaderboard</h2>
-          <ol className="leaderboard">
-            {state.leaderboard.length === 0 ? <li><span>No cultivators yet</span><strong>Lv 0</strong></li> : state.leaderboard.map((player) => (
-              <li key={player.id}>
-                <span>{player.avatar} {player.name}</span>
-                <strong>Lv {player.level}</strong>
-              </li>
-            ))}
-          </ol>
-        </Card>
+        {panel === 'rank' && (
+          <Card className="drawer-card">
+            <h2>Leaderboard</h2>
+            <ol className="leaderboard">
+              {state.leaderboard.length === 0 ? <li><span>No cultivators yet</span><strong>Lv 0</strong></li> : state.leaderboard.map((player) => (
+                <li key={player.id}>
+                  <span>{player.avatar} {player.name}</span>
+                  <strong>Lv {player.level}</strong>
+                </li>
+              ))}
+            </ol>
+          </Card>
+        )}
 
-        <Card>
-          <h2>Sect log</h2>
-          <div className="log">
-            {state.battles.length === 0 ? <p>No stars have fallen yet.</p> : state.battles.map((battle) => (
-              <p key={`${battle.at}-${battle.text}`}><b>{battle.kind}</b> {battle.text}</p>
-            ))}
-          </div>
-        </Card>
+        {panel === 'log' && (
+          <Card className="drawer-card">
+            <h2>Sect log</h2>
+            <div className="log">
+              {state.battles.length === 0 ? <p>No stars have fallen yet.</p> : state.battles.map((battle) => (
+                <p key={`${battle.at}-${battle.text}`}><b>{battle.kind}</b> {battle.text}</p>
+              ))}
+            </div>
+          </Card>
+        )}
       </section>
     </main>
   )
