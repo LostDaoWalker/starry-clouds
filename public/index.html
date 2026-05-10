@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Starry Clouds</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero-panel">
+        <div class="hero-copy">
+          <p class="soft-label">Starry Clouds</p>
+          <h1>Wholesome xianxia duels in one cozy loop.</h1>
+          <p>Train under petals, calm little spirits, spar with friends, and climb the jade leaderboard.</p>
+        </div>
+        <img src="/assets/cloud-blossom-world.png" alt="Adorable floating xianxia cloud sect" />
+      </section>
+
+      <section class="game-grid">
+        <div class="panel auth-panel" id="auth-panel"></div>
+
+        <div class="panel loop-panel">
+          <h2>Daily cultivation</h2>
+          <div class="actions">
+            <button data-action="train">Meditate</button>
+            <button data-action="pve">PvE spirit quest</button>
+            <button data-action="pvp">PvP cloud duel</button>
+          </div>
+          <div class="arena">
+            <div class="sprite-frame"><img src="/assets/cultivator-hero.png" alt="Cloud Blossom cultivator" /></div>
+            <div class="sparkles">✦ ✧ ✦</div>
+            <div class="sprite-frame rival"><img src="/assets/peach-spirit.png" alt="Peach blossom spirit" /></div>
+          </div>
+          <img class="reward-strip" src="/assets/reward-items.png" alt="Jade and talisman rewards" />
+        </div>
+
+        <div class="panel">
+          <h2>Leaderboard</h2>
+          <ol class="leaderboard" id="leaderboard"></ol>
+        </div>
+
+        <div class="panel">
+          <h2>Sect log</h2>
+          <div class="log" id="log"></div>
+        </div>
+      </section>
+    </main>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>
