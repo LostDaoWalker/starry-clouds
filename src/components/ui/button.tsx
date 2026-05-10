@@ -7,7 +7,7 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 export function Button({ className, variant = 'default', ...props }: ButtonProps) {
   const variants = {
-    default: 'bg-emerald text-ink shadow-jade hover:-translate-y-0.5',
+    default: 'bg-emerald text-ink shadow-jade',
     ghost: 'bg-deep text-mint shadow-none hover:bg-jade-soft',
     panel: 'bg-jade-soft text-mint shadow-none hover:bg-jade-line',
   }

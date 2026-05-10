@@ -24,7 +24,7 @@ export function JadeSectWorld({ onWorldEvent }: JadeSectWorldProps) {
     if (!mount) return
 
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x06110a)
+    scene.background = new THREE.Color(0x050907)
 
     const camera = new THREE.OrthographicCamera(-6, 6, 3.6, -3.6, 0.1, 50)
     camera.position.set(0, 8, 0)
@@ -43,19 +43,19 @@ export function JadeSectWorld({ onWorldEvent }: JadeSectWorldProps) {
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(11, 6.4),
-      new THREE.MeshBasicMaterial({ color: 0x07140d }),
+      new THREE.MeshBasicMaterial({ color: 0x07110b }),
     )
     floor.rotation.x = -Math.PI / 2
     scene.add(floor)
 
     const player = new THREE.Sprite(new THREE.SpriteMaterial({ map: heroTexture, transparent: true }))
-    player.scale.set(1.1, 1.1, 1)
+    player.scale.set(0.9, 0.9, 1)
     player.position.set(0, 0.56, 0.5)
     scene.add(player)
 
     const herb = new THREE.Mesh(
       new THREE.CircleGeometry(0.18, 18),
-      new THREE.MeshBasicMaterial({ color: 0x52df91 }),
+      new THREE.MeshBasicMaterial({ color: 0x8ddca7 }),
     )
     herb.rotation.x = -Math.PI / 2
     herb.position.set(2.2, 0.02, -1.2)
