@@ -125,10 +125,7 @@ export default function App() {
   return (
     <main className="shell">
       <section className="top-bar">
-        <div>
-          <p className="soft-label">Starry Clouds</p>
-          <h1>Jade skies, tiny buddies.</h1>
-        </div>
+        <h1>Starry Clouds</h1>
         <div className="top-stats">
           <span><Leaf size={16} /> {herbs}</span>
           <span>Lv {state.user.level}</span>
