@@ -3,12 +3,15 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { extname, join, normalize } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import pg from 'pg'
 
 const root = join(fileURLToPath(new URL('.', import.meta.url)), '..')
 const dataDir = join(root, 'data')
 const dbPath = join(dataDir, 'game.json')
 const publicDir = existsSync(join(root, 'dist')) ? join(root, 'dist') : join(root, 'public')
 const port = Number(process.env.PORT || 4173)
+const databaseUrl = process.env.DATABASE_URL
+const pool = databaseUrl ? new pg.Pool({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } }) : null
 
 const starter = () => ({
   users: [],
@@ -17,14 +20,43 @@ const starter = () => ({
   nextId: 1,
 })
 
-function loadDb() {
+function loadFileDb() {
   if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true })
   if (!existsSync(dbPath)) writeFileSync(dbPath, JSON.stringify(starter(), null, 2))
   return JSON.parse(readFileSync(dbPath, 'utf8'))
 }
 
-function saveDb(db) {
+function saveFileDb(db) {
   writeFileSync(dbPath, JSON.stringify(db, null, 2))
+}
+
+async function initStorage() {
+  if (!pool) return
+  await pool.query(`
+    create table if not exists game_state (
+      id integer primary key,
+      data jsonb not null,
+      updated_at timestamptz not null default now()
+    )
+  `)
+  await pool.query(
+    `insert into game_state (id, data) values (1, $1::jsonb) on conflict (id) do nothing`,
+    [JSON.stringify(starter())],
+  )
+}
+
+async function loadDb() {
+  if (!pool) return loadFileDb()
+  const result = await pool.query('select data from game_state where id = 1')
+  return result.rows[0]?.data || starter()
+}
+
+async function saveDb(db) {
+  if (!pool) return saveFileDb(db)
+  await pool.query(
+    'update game_state set data = $1::jsonb, updated_at = now() where id = 1',
+    [JSON.stringify(db)],
+  )
 }
 
 function hashPassword(password, salt = randomBytes(16).toString('hex')) {
@@ -125,7 +157,7 @@ async function handleApi(req, res, db) {
     const token = randomBytes(24).toString('hex')
     db.users.push(newUser)
     db.sessions[token] = newUser.id
-    saveDb(db)
+    await saveDb(db)
     return send(res, 200, { user: publicUser(newUser), leaderboard: leaderboard(db), battles: db.battles.slice(-8).reverse() }, {
       'set-cookie': `sect_token=${token}; HttpOnly; Path=/; SameSite=Lax`,
     })
@@ -138,7 +170,7 @@ async function handleApi(req, res, db) {
     }
     const token = randomBytes(24).toString('hex')
     db.sessions[token] = found.id
-    saveDb(db)
+    await saveDb(db)
     return send(res, 200, { user: publicUser(found), leaderboard: leaderboard(db), battles: db.battles.slice(-8).reverse() }, {
       'set-cookie': `sect_token=${token}; HttpOnly; Path=/; SameSite=Lax`,
     })
@@ -153,7 +185,7 @@ async function handleApi(req, res, db) {
   if (req.url === '/api/logout' && req.method === 'POST') {
     const token = (req.headers.cookie || '').split('; ').find((c) => c.startsWith('sect_token='))?.split('=')[1]
     if (token) delete db.sessions[token]
-    saveDb(db)
+    await saveDb(db)
     return send(res, 200, { ok: true }, { 'set-cookie': 'sect_token=; Max-Age=0; Path=/' })
   }
 
@@ -175,14 +207,14 @@ async function handleApi(req, res, db) {
         ? `${user.name} comforted a ${encounter.name} and gained ${encounter.qi} qi.`
         : `${user.name} shared snacks with a ${encounter.name} and retreated safely.`,
     })
-    saveDb(db)
+    await saveDb(db)
     return send(res, 200, { user: publicUser(user), result: db.battles.at(-1), leaderboard: leaderboard(db), battles: db.battles.slice(-8).reverse() })
   }
 
   if (req.url === '/api/train' && req.method === 'POST') {
     gain(user, 9, 1)
     db.battles.push({ at: new Date().toISOString(), kind: 'Train', text: `${user.name} meditated under peach petals.` })
-    saveDb(db)
+    await saveDb(db)
     return send(res, 200, { user: publicUser(user), result: db.battles.at(-1), leaderboard: leaderboard(db), battles: db.battles.slice(-8).reverse() })
   }
 
@@ -209,7 +241,7 @@ async function handleApi(req, res, db) {
         ? `${user.name} won a friendly cloud duel against ${rival.name}.`
         : `${rival.name} bowed sweetly after sparring with ${user.name}.`,
     })
-    saveDb(db)
+    await saveDb(db)
     return send(res, 200, { user: publicUser(user), result: db.battles.at(-1), leaderboard: leaderboard(db), battles: db.battles.slice(-8).reverse() })
   }
 
@@ -240,10 +272,12 @@ function serveStatic(req, res) {
   res.end(readFileSync(target))
 }
 
+await initStorage()
+
 createServer(async (req, res) => {
-  const db = loadDb()
+  const db = await loadDb()
   if (req.url?.startsWith('/api/')) return handleApi(req, res, db)
   serveStatic(req, res)
 }).listen(port, () => {
-  console.log(`Cloud Blossom Sect is awake at http://localhost:${port}`)
+  console.log(`Cloud Blossom Sect is awake at http://localhost:${port} using ${pool ? 'Postgres' : 'local JSON'} storage`)
 })

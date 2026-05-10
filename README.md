@@ -41,6 +41,12 @@ Render will provide `PORT`, and the included server uses it automatically.
 
 There is also a `render.yaml` file, so Render can detect the service setup.
 
+## Data Persistence
+
+The server uses durable Postgres storage when `DATABASE_URL` is set. On Render, the included `render.yaml` declares a `starry-clouds-db` Postgres database and wires its connection string into the web service.
+
+For local play, the server falls back to `data/game.json`, which is ignored by git.
+
 ## Assets
 
 Generated image assets live in `public/assets/`. The latest black-and-jade backdrop is:
