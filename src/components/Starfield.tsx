@@ -19,24 +19,19 @@ export function Starfield() {
 
     const geometry = new THREE.BufferGeometry()
     const positions: number[] = []
-    for (let index = 0; index < 520; index += 1) {
+    for (let index = 0; index < 120; index += 1) {
       positions.push((Math.random() - 0.5) * 90, (Math.random() - 0.5) * 52, (Math.random() - 0.5) * 70)
     }
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
 
     const material = new THREE.PointsMaterial({
       color: 0x55ff9c,
-      size: 0.18,
+      size: 0.1,
       transparent: true,
-      opacity: 0.78,
+      opacity: 0.3,
     })
     const stars = new THREE.Points(geometry, material)
     scene.add(stars)
-
-    const cloudGeometry = new THREE.TorusKnotGeometry(7.8, 0.18, 120, 8)
-    const cloudMaterial = new THREE.MeshBasicMaterial({ color: 0x35f08f, wireframe: true, transparent: true, opacity: 0.18 })
-    const cloud = new THREE.Mesh(cloudGeometry, cloudMaterial)
-    scene.add(cloud)
 
     const resize = () => {
       camera.aspect = mount.clientWidth / mount.clientHeight
@@ -48,10 +43,7 @@ export function Starfield() {
     let frame = 0
     const animate = () => {
       frame = requestAnimationFrame(animate)
-      stars.rotation.y += 0.0009
-      stars.rotation.x += 0.00025
-      cloud.rotation.x += 0.002
-      cloud.rotation.y += 0.003
+      stars.rotation.y += 0.00025
       renderer.render(scene, camera)
     }
     animate()
@@ -61,8 +53,6 @@ export function Starfield() {
       window.removeEventListener('resize', resize)
       geometry.dispose()
       material.dispose()
-      cloudGeometry.dispose()
-      cloudMaterial.dispose()
       renderer.dispose()
       mount.removeChild(renderer.domElement)
     }

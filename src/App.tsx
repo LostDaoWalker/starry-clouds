@@ -107,7 +107,6 @@ export default function App() {
           <h1>Jade skies, tiny buddies, cozy cultivation.</h1>
           <p>A brutally simple online-ish xianxia hangout: enter the sect, walk around, gather herbs, meditate, and gently spar.</p>
         </div>
-        <img src="/assets/jade-moon-sect.png" alt="Adorable black and jade xianxia cloud sect" />
       </section>
 
       <section className="world-section">
@@ -162,19 +161,13 @@ export default function App() {
           <p className="notice">{notice}</p>
         </Card>
 
-        <Card className="loop-panel">
+        <Card className="loop-panel primary-actions">
           <h2>Daily cultivation</h2>
           <div className="actions">
             <Button onClick={() => action('train')} disabled={!state.user || busy}><Sparkles size={18} /> Meditate</Button>
             <Button onClick={() => action('pve')} disabled={!state.user || busy}><Swords size={18} /> PvE spirit quest</Button>
             <Button onClick={() => action('pvp')} disabled={!state.user || busy}><Trophy size={18} /> PvP cloud duel</Button>
           </div>
-          <div className="arena">
-            <div className="sprite-frame"><img src="/assets/cultivator-hero.png" alt="Starry Clouds cultivator" /></div>
-            <div className="sparkles">✦ ✧ ✦</div>
-            <div className="sprite-frame rival"><img src="/assets/peach-spirit.png" alt="Peach blossom spirit" /></div>
-          </div>
-          <img className="reward-strip" src="/assets/reward-items.png" alt="Jade and talisman rewards" />
         </Card>
 
         <Card>

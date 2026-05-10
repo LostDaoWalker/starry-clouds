@@ -13,7 +13,6 @@ type JadeSectWorldProps = {
 const friends = [
   { name: 'Mimi', x: -3.8, z: -1.6, color: 0xffb7d8 },
   { name: 'Bao', x: 3.4, z: -2.1, color: 0xa9ffd2 },
-  { name: 'Lulu', x: 1.8, z: 2.8, color: 0xffdc7d },
 ]
 
 export function JadeSectWorld({ onWorldEvent }: JadeSectWorldProps) {
@@ -46,7 +45,7 @@ export function JadeSectWorld({ onWorldEvent }: JadeSectWorldProps) {
     const heroTexture = textureLoader.load('/assets/cultivator-hero.png')
     const spiritTexture = textureLoader.load('/assets/peach-spirit.png')
 
-    scene.add(new THREE.AmbientLight(0xbfffe0, 1.3))
+    scene.add(new THREE.AmbientLight(0xbfffe0, 0.9))
     const moon = new THREE.DirectionalLight(0x88ffba, 2.8)
     moon.position.set(-4, 8, 6)
     scene.add(moon)
@@ -55,7 +54,7 @@ export function JadeSectWorld({ onWorldEvent }: JadeSectWorldProps) {
       new THREE.CylinderGeometry(6.2, 6.8, 0.5, 64),
       new THREE.MeshStandardMaterial({
         color: 0x07140d,
-        emissive: 0x062714,
+        emissive: 0x03180c,
         roughness: 0.7,
         metalness: 0.12,
       }),
@@ -65,14 +64,14 @@ export function JadeSectWorld({ onWorldEvent }: JadeSectWorldProps) {
 
     const ring = new THREE.Mesh(
       new THREE.TorusGeometry(6.25, 0.035, 10, 96),
-      new THREE.MeshBasicMaterial({ color: 0x35f08f, transparent: true, opacity: 0.85 }),
+      new THREE.MeshBasicMaterial({ color: 0x35f08f, transparent: true, opacity: 0.32 }),
     )
     ring.rotation.x = Math.PI / 2
     scene.add(ring)
 
     const path = new THREE.Mesh(
       new THREE.RingGeometry(1.4, 5.3, 72, 1, 0.35, Math.PI * 1.75),
-      new THREE.MeshBasicMaterial({ color: 0x10351f, transparent: true, opacity: 0.72, side: THREE.DoubleSide }),
+      new THREE.MeshBasicMaterial({ color: 0x10351f, transparent: true, opacity: 0.42, side: THREE.DoubleSide }),
     )
     path.rotation.x = -Math.PI / 2
     path.position.y = 0.012
@@ -103,20 +102,18 @@ export function JadeSectWorld({ onWorldEvent }: JadeSectWorldProps) {
       return { ...friend, group }
     })
 
-    const herbMaterial = new THREE.MeshStandardMaterial({ color: 0x35f08f, emissive: 0x11984e, roughness: 0.34 })
+    const herbMaterial = new THREE.MeshStandardMaterial({ color: 0x35f08f, emissive: 0x064d28, roughness: 0.5 })
     const herbSpots = [
       new THREE.Vector3(-2.5, 0.15, 2.6),
       new THREE.Vector3(2.7, 0.15, 1.8),
       new THREE.Vector3(-0.7, 0.15, -3.2),
-      new THREE.Vector3(4.2, 0.15, 0.1),
-      new THREE.Vector3(-4.4, 0.15, -0.3),
     ]
     const herbs = herbSpots.map((position, index) => {
       const herb = new THREE.Group()
       const stem = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.52, 6), herbMaterial)
       const glow = new THREE.Mesh(
         new THREE.SphereGeometry(0.18, 12, 12),
-        new THREE.MeshBasicMaterial({ color: 0xb8ffd1, transparent: true, opacity: 0.58 }),
+        new THREE.MeshBasicMaterial({ color: 0xb8ffd1, transparent: true, opacity: 0.28 }),
       )
       stem.position.y = 0.18
       glow.position.y = 0.55
@@ -127,8 +124,8 @@ export function JadeSectWorld({ onWorldEvent }: JadeSectWorldProps) {
       return herb
     })
 
-    const cloudMaterial = new THREE.MeshBasicMaterial({ color: 0x142a1b, transparent: true, opacity: 0.46 })
-    for (let index = 0; index < 16; index += 1) {
+    const cloudMaterial = new THREE.MeshBasicMaterial({ color: 0x142a1b, transparent: true, opacity: 0.2 })
+    for (let index = 0; index < 7; index += 1) {
       const cloud = new THREE.Mesh(new THREE.SphereGeometry(0.65 + Math.random() * 0.8, 14, 10), cloudMaterial)
       const angle = (index / 16) * Math.PI * 2
       cloud.position.set(Math.cos(angle) * (7.4 + Math.random() * 4), -0.5 - Math.random(), Math.sin(angle) * (7.4 + Math.random() * 4))
@@ -170,8 +167,8 @@ export function JadeSectWorld({ onWorldEvent }: JadeSectWorldProps) {
       player.position.y = 0.67 + Math.sin(clock.elapsedTime * 4) * 0.035
 
       herbs.forEach((herb) => {
-        herb.rotation.y += delta * 1.8
-        herb.position.y = 0.15 + Math.sin(clock.elapsedTime * 3 + herb.userData.id) * 0.04
+        herb.rotation.y += delta * 0.7
+        herb.position.y = 0.15 + Math.sin(clock.elapsedTime * 2 + herb.userData.id) * 0.025
         if (!collected.has(herb.userData.id) && player.position.distanceTo(herb.position) < 0.72) {
           collected.add(herb.userData.id)
           herb.visible = false
@@ -194,7 +191,7 @@ export function JadeSectWorld({ onWorldEvent }: JadeSectWorldProps) {
         }
       })
 
-      ring.rotation.z += delta * 0.12
+      ring.rotation.z += delta * 0.035
       camera.position.x += (player.position.x * 0.22 - camera.position.x) * 0.035
       camera.lookAt(player.position.x * 0.22, 0, 0)
       renderer.render(scene, camera)

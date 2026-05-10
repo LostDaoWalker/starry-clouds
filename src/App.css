@@ -2,8 +2,8 @@
   --ink: #031108;
   --black: #050907;
   --deep: #07140d;
-  --panel: rgba(5, 14, 9, 0.86);
-  --emerald: #35f08f;
+  --panel: rgba(5, 14, 9, 0.78);
+  --emerald: #52df91;
   --mint: #dfffee;
   --muted: #9fd6b8;
   --jade-soft: #102419;
@@ -50,7 +50,7 @@ input::placeholder { color: #78a88f; }
 .bg-jade-soft { background: var(--jade-soft); }
 .text-ink { color: var(--ink); }
 .text-mint { color: var(--mint); }
-.shadow-jade { box-shadow: 0 10px 24px rgba(53, 240, 143, 0.22); }
+.shadow-jade { box-shadow: 0 6px 16px rgba(53, 240, 143, 0.12); }
 .shadow-none { box-shadow: none; }
 .rounded-md { border-radius: 8px; }
 .px-4 { padding-left: 16px; padding-right: 16px; }
@@ -66,24 +66,21 @@ input::placeholder { color: #78a88f; }
 .border-jade-line { border-color: var(--jade-line); }
 .bg-panel { background: var(--panel); }
 .p-5 { padding: 20px; }
-.shadow-panel { box-shadow: 0 18px 44px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(155, 255, 199, 0.08); }
+.shadow-panel { box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24); }
 .backdrop-blur { backdrop-filter: blur(12px); }
 
 .shell {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
   padding: 24px;
-  background:
-    radial-gradient(circle at 15% 10%, rgba(53, 240, 143, 0.22), transparent 26%),
-    radial-gradient(circle at 90% 0%, rgba(0, 138, 70, 0.2), transparent 25%),
-    linear-gradient(180deg, #050907 0%, #06170d 100%);
+  background: linear-gradient(180deg, #050907 0%, #07140d 100%);
 }
 
 .starfield {
   position: fixed;
   inset: 0;
-  opacity: 0.92;
+  opacity: 0.38;
   pointer-events: none;
   z-index: 0;
 }
@@ -95,30 +92,25 @@ input::placeholder { color: #78a88f; }
   z-index: 1;
 }
 
+.game-grid > :last-child {
+  grid-column: 1 / -1;
+}
+
 .hero-panel {
   display: grid;
-  grid-template-columns: minmax(260px, 0.8fr) minmax(320px, 1.2fr);
-  gap: 24px;
+  grid-template-columns: 1fr;
+  gap: 10px;
   align-items: center;
   max-width: 1180px;
-  margin: 0 auto 24px;
+  margin: 0 auto 14px;
 }
 
-.hero-copy { padding: 18px 0; }
+.hero-copy { padding: 8px 0 4px; }
 .soft-label { color: var(--emerald); font-weight: 900; margin: 0 0 8px; }
 h1, h2, p { margin-top: 0; }
-h1 { color: #ecfff5; font-size: clamp(2rem, 5vw, 4.6rem); line-height: 1; margin-bottom: 16px; }
+h1 { color: #ecfff5; font-size: clamp(2rem, 4vw, 3.7rem); line-height: 1.04; margin-bottom: 12px; max-width: 760px; }
 h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
 .hero-copy p:last-child { color: var(--muted); font-size: 1.08rem; line-height: 1.7; max-width: 540px; }
-
-.hero-panel img {
-  width: 100%;
-  max-height: 420px;
-  object-fit: cover;
-  border: 1px solid rgba(53, 240, 143, 0.38);
-  border-radius: 8px;
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.48), 0 0 42px rgba(53, 240, 143, 0.14);
-}
 
 .world-section {
   max-width: 1180px;
@@ -169,9 +161,9 @@ h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
   border: 1px solid rgba(53, 240, 143, 0.38);
   border-radius: 8px;
   background:
-    linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.38)),
+    linear-gradient(rgba(2, 10, 6, 0.72), rgba(2, 10, 6, 0.78)),
     url("/assets/jade-moon-sect.png") center / cover;
-  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.48);
+  box-shadow: inset 0 0 48px rgba(0, 0, 0, 0.5);
 }
 
 .world-canvas {
@@ -203,17 +195,18 @@ h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
 
 .game-grid {
   display: grid;
-  grid-template-columns: 1fr 1.15fr 0.9fr 1fr;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(280px, 1fr) minmax(260px, 0.9fr);
   gap: 16px;
   max-width: 1180px;
   margin: 0 auto;
 }
 
 .auth-panel,
-.loop-panel { display: flex; flex-direction: column; gap: 12px; min-height: 248px; }
+.loop-panel { display: flex; flex-direction: column; gap: 12px; min-height: 220px; }
+.primary-actions { grid-column: span 1; }
 .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .player-card { display: flex; gap: 12px; align-items: center; }
-.avatar, .sprite-frame {
+.avatar {
   display: grid;
   width: 58px;
   height: 58px;
@@ -223,8 +216,6 @@ h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
   color: var(--emerald);
   font-size: 2rem;
 }
-.sprite-frame { width: 82px; height: 82px; overflow: hidden; }
-.sprite-frame img { width: 118%; height: 118%; object-fit: contain; }
 .player-card h2, .player-card p { margin: 0; }
 .player-card p, .notice, .log, .leaderboard { color: var(--muted); }
 
@@ -243,18 +234,6 @@ h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
 .qi-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--emerald), #b6ffd0); transition: width 220ms ease; }
 .notice { min-height: 44px; margin: auto 0 0; line-height: 1.45; }
 .actions { display: grid; gap: 10px; }
-.arena {
-  display: flex;
-  min-height: 92px;
-  align-items: center;
-  justify-content: space-between;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #08130d, var(--jade-soft));
-  padding: 16px;
-}
-.rival { background: #0b1c12; }
-.sparkles { color: var(--emerald); font-weight: 900; }
-.reward-strip { width: 100%; max-height: 72px; object-fit: contain; border-radius: 8px; background: var(--deep); }
 .leaderboard { display: grid; gap: 10px; margin: 0; padding-left: 22px; }
 .leaderboard li { align-items: center; display: flex; justify-content: space-between; gap: 12px; }
 .leaderboard strong, .log b { color: var(--emerald); }
