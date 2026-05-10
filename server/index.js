@@ -12,6 +12,8 @@ const publicDir = existsSync(join(root, 'dist')) ? join(root, 'dist') : join(roo
 const port = Number(process.env.PORT || 4173)
 const databaseUrl = process.env.DATABASE_URL
 const pool = databaseUrl ? new pg.Pool({ connectionString: databaseUrl, ssl: { rejectUnauthorized: false } }) : null
+const stateTable = process.env.GAME_STATE_TABLE || 'starry_clouds_game_state'
+if (!/^[a-z_][a-z0-9_]*$/i.test(stateTable)) throw new Error('Invalid GAME_STATE_TABLE name.')
 
 const starter = () => ({
   users: [],
@@ -33,28 +35,28 @@ function saveFileDb(db) {
 async function initStorage() {
   if (!pool) return
   await pool.query(`
-    create table if not exists game_state (
+    create table if not exists ${stateTable} (
       id integer primary key,
       data jsonb not null,
       updated_at timestamptz not null default now()
     )
   `)
   await pool.query(
-    `insert into game_state (id, data) values (1, $1::jsonb) on conflict (id) do nothing`,
+    `insert into ${stateTable} (id, data) values (1, $1::jsonb) on conflict (id) do nothing`,
     [JSON.stringify(starter())],
   )
 }
 
 async function loadDb() {
   if (!pool) return loadFileDb()
-  const result = await pool.query('select data from game_state where id = 1')
+  const result = await pool.query(`select data from ${stateTable} where id = 1`)
   return result.rows[0]?.data || starter()
 }
 
 async function saveDb(db) {
   if (!pool) return saveFileDb(db)
   await pool.query(
-    'update game_state set data = $1::jsonb, updated_at = now() where id = 1',
+    `update ${stateTable} set data = $1::jsonb, updated_at = now() where id = 1`,
     [JSON.stringify(db)],
   )
 }
