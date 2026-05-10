@@ -47,7 +47,7 @@ async function api(path: string, body?: Record<string, string>) {
 
 export default function App() {
   const [state, setState] = useState<GameState>(emptyState)
-  const [panel, setPanel] = useState<Panel>('me')
+  const [panel, setPanel] = useState<Panel | null>(null)
   const [mode, setMode] = useState<'login' | 'register'>('register')
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
@@ -70,7 +70,7 @@ export default function App() {
       const payload = await api(`/api/${mode}`, { name, password })
       setState(payload)
       setNotice(mode === 'register' ? 'Your star badge is ready!' : 'Welcome back, sweet cultivator!')
-      setPanel('cultivate')
+      setPanel(null)
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'Something went poof.')
     } finally {
@@ -96,10 +96,31 @@ export default function App() {
     }
   }
 
-  const handleWorldEvent = useCallback((event: { type: 'herb' | 'friend'; message: string }) => {
+  const handleWorldEvent = useCallback((event: { type: 'herb'; message: string }) => {
     setNotice(event.message)
     if (event.type === 'herb') setHerbs((count) => count + 1)
   }, [])
+
+  if (!state.user) {
+    return (
+      <main className="shell gate-shell">
+        <section className="gate-panel">
+          <Card className="drawer-card">
+            <p className="soft-label">Starry Clouds</p>
+            <h1>Enter the sect first.</h1>
+            <div className="tabs">
+              <Button variant={mode === 'register' ? 'default' : 'ghost'} onClick={() => setMode('register')}>Register</Button>
+              <Button variant={mode === 'login' ? 'default' : 'ghost'} onClick={() => setMode('login')}>Login</Button>
+            </div>
+            <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Cultivator name" />
+            <input value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Secret phrase" type="password" />
+            <Button onClick={submitAuth} disabled={busy}>{mode === 'register' ? 'Receive badge' : 'Open gate'}</Button>
+            <p className="notice">{notice}</p>
+          </Card>
+        </section>
+      </main>
+    )
+  }
 
   return (
     <main className="shell">
@@ -110,7 +131,7 @@ export default function App() {
         </div>
         <div className="top-stats">
           <span><Leaf size={16} /> {herbs}</span>
-          <span>{state.user ? `Lv ${state.user.level}` : 'Guest'}</span>
+          <span>Lv {state.user.level}</span>
         </div>
       </section>
 
@@ -119,46 +140,31 @@ export default function App() {
       </section>
 
       <nav className="dock" aria-label="Game menu">
-        <Button variant={panel === 'me' ? 'default' : 'ghost'} onClick={() => setPanel('me')}><UserRound size={18} /> Me</Button>
-        <Button variant={panel === 'cultivate' ? 'default' : 'ghost'} onClick={() => setPanel('cultivate')}><Sparkles size={18} /> Cultivate</Button>
-        <Button variant={panel === 'rank' ? 'default' : 'ghost'} onClick={() => setPanel('rank')}><Trophy size={18} /> Rank</Button>
-        <Button variant={panel === 'log' ? 'default' : 'ghost'} onClick={() => setPanel('log')}>Log</Button>
+        <Button variant={panel === 'me' ? 'default' : 'ghost'} onClick={() => setPanel(panel === 'me' ? null : 'me')}><UserRound size={18} /> Me</Button>
+        <Button variant={panel === 'cultivate' ? 'default' : 'ghost'} onClick={() => setPanel(panel === 'cultivate' ? null : 'cultivate')}><Sparkles size={18} /> Cultivate</Button>
+        <Button variant={panel === 'rank' ? 'default' : 'ghost'} onClick={() => setPanel(panel === 'rank' ? null : 'rank')}><Trophy size={18} /> Rank</Button>
+        <Button variant={panel === 'log' ? 'default' : 'ghost'} onClick={() => setPanel(panel === 'log' ? null : 'log')}>Log</Button>
       </nav>
 
       <section className="single-panel">
         {panel === 'me' && (
           <Card className="drawer-card">
-            {state.user ? (
-              <>
-                <div className="player-card">
-                  <span className="avatar"><UserRound size={28} /></span>
-                  <div>
-                    <h2>{state.user.name}</h2>
-                    <p>{state.user.title}</p>
-                  </div>
-                </div>
-                <div className="stats">
-                  <span>Lv {state.user.level}</span>
-                  <span>{state.user.jade} jade</span>
-                  <span>{state.user.wins}W / {state.user.losses}L</span>
-                </div>
-                <div className="qi-bar" aria-label="Qi progress">
-                  <span style={{ width: `${progress}%` }} />
-                </div>
-                <Button variant="panel" onClick={() => action('logout')} disabled={busy}>Leave gate</Button>
-              </>
-            ) : (
-              <>
-                <h2>Enter the sect</h2>
-                <div className="tabs">
-                  <Button variant={mode === 'register' ? 'default' : 'ghost'} onClick={() => setMode('register')}>Register</Button>
-                  <Button variant={mode === 'login' ? 'default' : 'ghost'} onClick={() => setMode('login')}>Login</Button>
-                </div>
-                <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Cultivator name" />
-                <input value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Secret phrase" type="password" />
-                <Button onClick={submitAuth} disabled={busy}>{mode === 'register' ? 'Receive badge' : 'Open gate'}</Button>
-              </>
-            )}
+            <div className="player-card">
+              <span className="avatar"><UserRound size={28} /></span>
+              <div>
+                <h2>{state.user.name}</h2>
+                <p>{state.user.title}</p>
+              </div>
+            </div>
+            <div className="stats">
+              <span>Lv {state.user.level}</span>
+              <span>{state.user.jade} jade</span>
+              <span>{state.user.wins}W / {state.user.losses}L</span>
+            </div>
+            <div className="qi-bar" aria-label="Qi progress">
+              <span style={{ width: `${progress}%` }} />
+            </div>
+            <Button variant="panel" onClick={() => action('logout')} disabled={busy}>Leave gate</Button>
             <p className="notice">{notice}</p>
           </Card>
         )}

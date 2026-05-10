@@ -3,7 +3,7 @@
   --black: #050907;
   --deep: #07140d;
   --panel: rgba(5, 14, 9, 0.78);
-  --emerald: #52df91;
+  --emerald: #6bd89a;
   --mint: #dfffee;
   --muted: #9fd6b8;
   --jade-soft: #102419;
@@ -50,7 +50,7 @@ input::placeholder { color: #78a88f; }
 .bg-jade-soft { background: var(--jade-soft); }
 .text-ink { color: var(--ink); }
 .text-mint { color: var(--mint); }
-.shadow-jade { box-shadow: 0 6px 16px rgba(53, 240, 143, 0.12); }
+.shadow-jade { box-shadow: none; }
 .shadow-none { box-shadow: none; }
 .rounded-md { border-radius: 8px; }
 .px-4 { padding-left: 16px; padding-right: 16px; }
@@ -66,15 +66,24 @@ input::placeholder { color: #78a88f; }
 .border-jade-line { border-color: var(--jade-line); }
 .bg-panel { background: var(--panel); }
 .p-5 { padding: 20px; }
-.shadow-panel { box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24); }
+.shadow-panel { box-shadow: none; }
 .backdrop-blur { backdrop-filter: blur(12px); }
 
 .shell {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
-  padding: 24px;
-  background: linear-gradient(180deg, #050907 0%, #07140d 100%);
+  padding: 18px;
+  background: #050907;
+}
+
+.gate-shell {
+  display: grid;
+  place-items: center;
+}
+
+.gate-panel {
+  width: min(420px, 100%);
 }
 
 .top-bar,
@@ -91,12 +100,12 @@ input::placeholder { color: #78a88f; }
   justify-content: space-between;
   gap: 14px;
   max-width: 1180px;
-  margin: 0 auto 12px;
+  margin: 0 auto 10px;
 }
 
-.soft-label { color: var(--emerald); font-weight: 900; margin: 0 0 8px; }
+.soft-label { color: var(--emerald); font-size: 0.78rem; font-weight: 900; margin: 0 0 4px; }
 h1, h2, p { margin-top: 0; }
-h1 { color: #ecfff5; font-size: clamp(1.6rem, 3vw, 2.8rem); line-height: 1.04; margin: 0; max-width: 760px; }
+h1 { color: #ecfff5; font-size: clamp(1.25rem, 2.2vw, 1.8rem); line-height: 1.04; margin: 0; max-width: 760px; }
 h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
 
 .top-stats {
@@ -109,12 +118,13 @@ h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid rgba(53, 240, 143, 0.38);
+  border: 1px solid rgba(107, 216, 154, 0.18);
   border-radius: 999px;
   background: rgba(5, 14, 9, 0.7);
   color: #dfffee;
-  font-weight: 900;
-  padding: 8px 11px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  padding: 7px 10px;
 }
 
 .world-section {
@@ -124,11 +134,11 @@ h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
 
 .world-wrap {
   position: relative;
-  min-height: 58vh;
+  min-height: calc(100vh - 170px);
   overflow: hidden;
-  border: 1px solid rgba(53, 240, 143, 0.24);
+  border: 1px solid rgba(107, 216, 154, 0.14);
   border-radius: 8px;
-  background: #07140d;
+  background: #06110a;
 }
 
 .world-canvas {
@@ -144,25 +154,25 @@ h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
 
 .world-hint {
   position: absolute;
-  left: 14px;
-  bottom: 14px;
+  left: 10px;
+  bottom: 10px;
   max-width: min(520px, calc(100% - 28px));
-  border: 1px solid rgba(53, 240, 143, 0.34);
+  border: 1px solid rgba(107, 216, 154, 0.18);
   border-radius: 8px;
   background: rgba(3, 17, 8, 0.78);
   color: #eafff1;
-  font-size: 0.92rem;
-  font-weight: 800;
+  font-size: 0.82rem;
+  font-weight: 700;
   line-height: 1.4;
-  padding: 10px 12px;
-  backdrop-filter: blur(10px);
+  padding: 8px 10px;
 }
 
 .dock {
   display: flex;
   gap: 8px;
   max-width: 1180px;
-  margin: 0 auto 10px;
+  margin: 0 auto;
+  padding-top: 10px;
 }
 
 .dock button {
@@ -172,7 +182,7 @@ h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
 
 .single-panel {
   max-width: 560px;
-  margin: 0 auto;
+  margin: 10px auto 0;
 }
 
 .drawer-card {
@@ -218,9 +228,9 @@ h2 { color: var(--mint); font-size: 1.18rem; margin-bottom: 14px; }
 .log p { margin: 0; line-height: 1.5; }
 
 @media (max-width: 980px) {
-  .shell { padding: 16px; }
+  .shell { padding: 12px; }
   .top-bar { align-items: flex-start; flex-direction: column; }
-  .world-wrap { min-height: 56vh; }
+  .world-wrap { min-height: calc(100vh - 166px); }
   .dock { overflow-x: auto; }
   .dock button { flex: 0 0 auto; }
 }
