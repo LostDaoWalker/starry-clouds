@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BottomDock, HeroPortrait } from "./components/BottomDock";
+import { BottomDock } from "./components/BottomDock";
+import { HeroPortrait } from "./components/HeroPortrait";
 import { ClassSelect } from "./components/ClassSelect";
 import {
   DamageFloaters,
@@ -253,12 +254,13 @@ export default function App() {
               <StageProgress stage={live.stage} />
             </div>
             <span className="auto-battle">
-              <span className="auto-dot" />
+              <GameIcon name="auto" size="sm" />
               AUTO
             </span>
           </div>
 
           <div className="wave-banner">
+            <GameIcon name="wave" size="sm" />
             WAVE {combat.wave}/{combat.totalWaves}
           </div>
 
@@ -294,6 +296,7 @@ export default function App() {
               <span className="arena-vs">VS</span>
               {lastStars > 0 && (
                 <span className="star-rating" aria-label={`${lastStars} stars`}>
+                  <GameIcon name="star" size="sm" />
                   {"★".repeat(lastStars)}
                   {"☆".repeat(3 - lastStars)}
                 </span>

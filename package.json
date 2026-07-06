@@ -9,7 +9,8 @@
     "start": "node server/index.js",
     "preview": "vite preview",
     "sprites:process": "node scripts/chroma-key.mjs",
-    "icons:process": "node scripts/process-icons.mjs"
+    "icons:process": "node scripts/process-icons.mjs",
+    "assets:process": "node scripts/process-assets.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

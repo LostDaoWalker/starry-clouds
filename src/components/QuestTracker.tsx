@@ -1,3 +1,4 @@
+import { GameIcon } from "./GameIcon";
 import { stageInfo, stageLabel } from "../game";
 
 type QuestTrackerProps = {
@@ -12,7 +13,10 @@ export function QuestTracker({ stage, power, wave, totalWaves }: QuestTrackerPro
 
   return (
     <aside className="quest-tracker panel panel-ornate">
-      <p className="quest-title">QUEST</p>
+      <p className="quest-title">
+        <GameIcon name="quest" size="sm" />
+        QUEST
+      </p>
       <p className="quest-objective">
         Clear <strong>{stageLabel(stage)}</strong>
       </p>

@@ -258,7 +258,7 @@
 .auto-battle {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
   font-size: 0.55rem;
   letter-spacing: 0.12em;
   color: var(--pink);
@@ -269,31 +269,16 @@
   flex-shrink: 0;
 }
 
-.auto-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--pink);
-  animation: blink 0.8s ease infinite;
-}
-
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.2;
-  }
-}
-
 .wave-banner {
   position: relative;
   z-index: 4;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
   font-family: "Bebas Neue", sans-serif;
   font-size: 0.75rem;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.2em;
   color: var(--gold);
   text-shadow: 0 0 8px var(--gold);
   padding: 0.1rem 0;
@@ -332,6 +317,9 @@
   font-size: 0.62rem;
   letter-spacing: 0.14em;
   color: var(--cyan);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
 }
 
 .quest-objective {
@@ -415,6 +403,9 @@
 }
 
 .star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
   font-size: 0.7rem;
   color: var(--gold);
 }

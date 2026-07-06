@@ -83,11 +83,14 @@ export type StageInfo = {
   isBoss: boolean;
 };
 
+export type EnemySprite = "minion" | "rival" | "paparazzo" | "critic" | "boss";
+
 export type Enemy = {
   name: string;
   maxHp: number;
   power: number;
   isBoss: boolean;
+  sprite: EnemySprite;
 };
 
 export type CombatState = {
@@ -176,7 +179,14 @@ export function enemyForStage(stage: number): Enemy {
     maxHp: Math.floor((40 + scale * 22) * bossMult),
     power: Math.floor((8 + scale * 6) * (info.isBoss ? 2 : 1)),
     isBoss: info.isBoss,
+    sprite: info.isBoss ? "boss" : rivalSpriteForStage(scale),
   };
+}
+
+const RIVAL_SPRITES: EnemySprite[] = ["rival", "paparazzo", "critic"];
+
+function rivalSpriteForStage(stage: number): EnemySprite {
+  return RIVAL_SPRITES[stage % RIVAL_SPRITES.length];
 }
 
 export function wavesForStage(stage: number): number {
@@ -197,6 +207,7 @@ export function enemyForWave(stage: number, wave: number, totalWaves: number): E
       maxHp: Math.max(15, Math.floor((base.maxHp * scale) / totalWaves)),
       power: Math.max(4, Math.floor(base.power * scale * 0.65)),
       isBoss: false,
+      sprite: "minion",
     };
   }
 
