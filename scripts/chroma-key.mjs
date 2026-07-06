@@ -8,10 +8,10 @@
  *
  * Usage:
  *   npm run sprites:process
- *   node scripts/chroma-key.mjs --input public/sprites/raw --output public/sprites/walk --frames 4
+ *   node scripts/chroma-key.mjs --input public/sprites/raw --output public/sprites/walk --frames 16
  */
 
-import { mkdir, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readdir, writeFile, unlink } from "node:fs/promises";
 import { basename, join } from "node:path";
 import sharp from "sharp";
 
@@ -23,7 +23,7 @@ function parseArgs(argv) {
   const opts = {
     input: "public/sprites/raw",
     output: "public/sprites/walk",
-    frames: 4,
+    frames: 16,
     tolerance: DEFAULT_TOLERANCE,
     spill: DEFAULT_SPILL,
   };
@@ -41,7 +41,7 @@ function parseArgs(argv) {
 Options:
   --input <dir>       Source chroma-key sprite sheets (default: public/sprites/raw)
   --output <dir>      Processed transparent frames (default: public/sprites/walk)
-  --frames <n>        Frames per horizontal sheet (default: 4)
+  --frames <n>        Frames per horizontal sheet (default: 16)
   --tolerance <0-255> Green distance cutoff (default: ${DEFAULT_TOLERANCE})
   --spill <0-1>       Desaturate green spill on edges (default: ${DEFAULT_SPILL})
 `);
@@ -132,6 +132,12 @@ async function processSheet(filePath, opts) {
     .replace(/\.[^.]+$/, "");
   const outDir = join(opts.output, className);
   await mkdir(outDir, { recursive: true });
+
+  for (const entry of await readdir(outDir)) {
+    if (/^frame-\d+\.png$/i.test(entry)) {
+      await unlink(join(outDir, entry));
+    }
+  }
 
   const { data, info } = await sharp(filePath)
     .ensureAlpha()
