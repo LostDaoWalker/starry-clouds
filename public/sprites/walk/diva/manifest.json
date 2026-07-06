@@ -1,0 +1,31 @@
+{
+  "class": "diva",
+  "frameCount": 4,
+  "source": "diva-walk.png",
+  "canvas": {
+    "width": 365,
+    "height": 825
+  },
+  "frames": [
+    {
+      "file": "frame-00.png",
+      "width": 365,
+      "height": 825
+    },
+    {
+      "file": "frame-01.png",
+      "width": 365,
+      "height": 825
+    },
+    {
+      "file": "frame-02.png",
+      "width": 365,
+      "height": 825
+    },
+    {
+      "file": "frame-03.png",
+      "width": 365,
+      "height": 825
+    }
+  ]
+}

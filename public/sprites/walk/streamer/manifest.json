@@ -1,0 +1,31 @@
+{
+  "class": "streamer",
+  "frameCount": 4,
+  "source": "streamer-walk.png",
+  "canvas": {
+    "width": 384,
+    "height": 812
+  },
+  "frames": [
+    {
+      "file": "frame-00.png",
+      "width": 384,
+      "height": 812
+    },
+    {
+      "file": "frame-01.png",
+      "width": 384,
+      "height": 812
+    },
+    {
+      "file": "frame-02.png",
+      "width": 384,
+      "height": 812
+    },
+    {
+      "file": "frame-03.png",
+      "width": 384,
+      "height": 812
+    }
+  ]
+}

@@ -1,0 +1,128 @@
+{
+  "classes": [
+    {
+      "class": "dancer",
+      "frameCount": 4,
+      "source": "dancer-walk.png",
+      "canvas": {
+        "width": 382,
+        "height": 793
+      },
+      "frames": [
+        {
+          "file": "frame-00.png",
+          "width": 382,
+          "height": 793
+        },
+        {
+          "file": "frame-01.png",
+          "width": 382,
+          "height": 793
+        },
+        {
+          "file": "frame-02.png",
+          "width": 382,
+          "height": 793
+        },
+        {
+          "file": "frame-03.png",
+          "width": 382,
+          "height": 793
+        }
+      ]
+    },
+    {
+      "class": "diva",
+      "frameCount": 4,
+      "source": "diva-walk.png",
+      "canvas": {
+        "width": 365,
+        "height": 825
+      },
+      "frames": [
+        {
+          "file": "frame-00.png",
+          "width": 365,
+          "height": 825
+        },
+        {
+          "file": "frame-01.png",
+          "width": 365,
+          "height": 825
+        },
+        {
+          "file": "frame-02.png",
+          "width": 365,
+          "height": 825
+        },
+        {
+          "file": "frame-03.png",
+          "width": 365,
+          "height": 825
+        }
+      ]
+    },
+    {
+      "class": "model",
+      "frameCount": 4,
+      "source": "model-walk.png",
+      "canvas": {
+        "width": 354,
+        "height": 797
+      },
+      "frames": [
+        {
+          "file": "frame-00.png",
+          "width": 354,
+          "height": 797
+        },
+        {
+          "file": "frame-01.png",
+          "width": 354,
+          "height": 797
+        },
+        {
+          "file": "frame-02.png",
+          "width": 354,
+          "height": 797
+        },
+        {
+          "file": "frame-03.png",
+          "width": 354,
+          "height": 797
+        }
+      ]
+    },
+    {
+      "class": "streamer",
+      "frameCount": 4,
+      "source": "streamer-walk.png",
+      "canvas": {
+        "width": 384,
+        "height": 812
+      },
+      "frames": [
+        {
+          "file": "frame-00.png",
+          "width": 384,
+          "height": 812
+        },
+        {
+          "file": "frame-01.png",
+          "width": 384,
+          "height": 812
+        },
+        {
+          "file": "frame-02.png",
+          "width": 384,
+          "height": 812
+        },
+        {
+          "file": "frame-03.png",
+          "width": 384,
+          "height": 812
+        }
+      ]
+    }
+  ]
+}
