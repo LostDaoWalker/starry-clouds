@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "start": "node server/index.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sprites:process": "node scripts/chroma-key.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",
@@ -21,6 +22,7 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "sharp": "^0.33.5",
     "typescript": "~5.8.3",
     "vite": "^6.3.5"
   }
