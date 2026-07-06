@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "start": "node server/index.js",
     "preview": "vite preview",
-    "sprites:process": "node scripts/chroma-key.mjs"
+    "sprites:process": "node scripts/chroma-key.mjs",
+    "icons:process": "node scripts/process-icons.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.0",

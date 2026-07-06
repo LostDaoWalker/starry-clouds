@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ClassSelect } from "./components/ClassSelect";
+import { GameIcon } from "./components/GameIcon";
 import { SpriteActor } from "./components/SpriteActor";
 import {
   ACTIONS,
@@ -21,10 +22,15 @@ import "./App.css";
 
 type StatKey = "glamour" | "makeup" | "fashion";
 
-const STATS: { key: StatKey; label: string; color: string }[] = [
-  { key: "glamour", label: "GLAMOUR", color: "var(--pink)" },
-  { key: "makeup", label: "MAKEUP", color: "var(--cyan)" },
-  { key: "fashion", label: "FASHION", color: "var(--gold)" },
+const STATS: {
+  key: StatKey;
+  label: string;
+  color: string;
+  icon: "glamour" | "makeup" | "fashion";
+}[] = [
+  { key: "glamour", label: "GLAMOUR", color: "var(--pink)", icon: "glamour" },
+  { key: "makeup", label: "MAKEUP", color: "var(--cyan)", icon: "makeup" },
+  { key: "fashion", label: "FASHION", color: "var(--gold)", icon: "fashion" },
 ];
 
 const MAX_LOG = 5;
@@ -33,15 +39,20 @@ function StatBar({
   label,
   value,
   color,
+  icon,
 }: {
   label: string;
   value: number;
   color: string;
+  icon: "glamour" | "makeup" | "fashion";
 }) {
   return (
     <div className="stat">
       <div className="stat-head">
-        <span className="stat-label">{label}</span>
+        <span className="stat-label">
+          <GameIcon name={icon} size="sm" />
+          {label}
+        </span>
         <span className="stat-value">{value}</span>
       </div>
       <div className="stat-track">
@@ -168,16 +179,28 @@ export default function App() {
           <span className="zone">{zone.name}</span>
         </div>
         <div className="currencies">
-          <span className="luster">✦ {live.luster}</span>
-          <span className="energy">⚡ {live.energy}</span>
-          <span className="fame">★ {live.fame}</span>
+          <span className="currency luster">
+            <GameIcon name="luster" size="sm" />
+            {live.luster}
+          </span>
+          <span className="currency energy">
+            <GameIcon name="energy" size="sm" />
+            {live.energy}
+          </span>
+          <span className="currency fame">
+            <GameIcon name="fame" size="sm" />
+            {live.fame}
+          </span>
         </div>
       </header>
 
       <section className="arena panel">
         <div className="arena-side arena-player">
           <p className="arena-label">{classLabel}</p>
-          <p className="arena-power">PWR {power}</p>
+          <p className="arena-power">
+            <GameIcon name="power" size="sm" />
+            PWR {power}
+          </p>
           {playerClass && <SpriteActor playerClass={playerClass} />}
         </div>
 
@@ -203,6 +226,7 @@ export default function App() {
               label={s.label}
               value={live[s.key]}
               color={s.color}
+              icon={s.icon}
             />
           ))}
         </div>
@@ -227,6 +251,7 @@ export default function App() {
               disabled={busy !== null || !canAct(live, key)}
               onClick={() => act(key)}
             >
+              <GameIcon name={key} size="lg" />
               {ACTIONS[key].label}
             </button>
           ))}

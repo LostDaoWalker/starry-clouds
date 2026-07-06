@@ -58,6 +58,34 @@
   letter-spacing: 0.05em;
 }
 
+.currency {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.game-icon {
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
+}
+
+.game-icon-sm {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.game-icon-md {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.game-icon-lg {
+  width: 2rem;
+  height: 2rem;
+}
+
 .luster {
   color: var(--gold);
 }
@@ -99,6 +127,9 @@
 }
 
 .arena-power {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   margin: 0 0 0.35rem;
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -188,6 +219,9 @@
 }
 
 .stat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-family: "Bebas Neue", sans-serif;
   font-size: 1rem;
   letter-spacing: 0.1em;
@@ -275,14 +309,23 @@
 }
 
 .action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
   border: none;
-  padding: 0.7rem 0.35rem;
+  padding: 0.55rem 0.35rem 0.65rem;
   font-family: "Bebas Neue", sans-serif;
   font-size: clamp(1.1rem, 3.5vw, 1.45rem);
   letter-spacing: 0.1em;
   cursor: pointer;
   color: var(--black);
   transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.action .game-icon {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
 }
 
 .action:disabled {
