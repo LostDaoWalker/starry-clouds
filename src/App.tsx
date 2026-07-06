@@ -105,7 +105,7 @@ export default function App() {
       <main className="screen error-screen">
         <p className="error-title">GLAMOUR</p>
         <p className="error-msg">{error}</p>
-        <p className="error-hint">Check Supabase env vars and that anonymous sign-ins are enabled</p>
+        <p className="error-hint">Check your connection and Supabase configuration</p>
       </main>
     );
   }
@@ -123,7 +123,7 @@ export default function App() {
   return (
     <main className="screen">
       <figure className="hero">
-        <img src="/hero.png" alt="Your glamorous avatar" />
+        <img src={`${import.meta.env.BASE_URL}hero.png`} alt="Your glamorous avatar" />
       </figure>
 
       <section className="hud">

@@ -10,6 +10,17 @@ if (!url || !anonKey) {
 
 export const supabase = createClient(url, anonKey);
 
+const PLAYER_ID_KEY = "glamour_player_id";
+
+function playerId(): string {
+  let id = localStorage.getItem(PLAYER_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(PLAYER_ID_KEY, id);
+  }
+  return id;
+}
+
 function normalisePlayer(raw: Record<string, unknown>): Player {
   return {
     id: raw.id as string,
@@ -27,62 +38,26 @@ function normalisePlayer(raw: Record<string, unknown>): Player {
 }
 
 export async function ensurePlayer(): Promise<Player> {
-  const { data: sessionData, error: sessionError } =
-    await supabase.auth.getSession();
+  const { data, error } = await supabase.rpc("get_or_create_player", {
+    p_id: playerId(),
+  });
 
-  if (sessionError) throw sessionError;
-
-  let userId = sessionData.session?.user.id;
-
-  if (!userId) {
-    const { data: authData, error: authError } =
-      await supabase.auth.signInAnonymously();
-    if (authError) {
-      if (authError.message.toLowerCase().includes("anonymous")) {
-        throw new Error("Anonymous sign-ins are disabled");
-      }
-      throw authError;
-    }
-    userId = authData.user?.id;
-  }
-
-  if (!userId) throw new Error("Failed to establish player session");
-
-  const { data: existing, error: selectError } = await supabase
-    .from("players")
-    .select("*")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (selectError) throw selectError;
-  if (existing) return normalisePlayer(existing);
-
-  const { data: created, error: insertError } = await supabase
-    .from("players")
-    .insert({ id: userId })
-    .select("*")
-    .single();
-
-  if (insertError) throw insertError;
-  return normalisePlayer(created);
+  if (error) throw error;
+  return normalisePlayer(data as Record<string, unknown>);
 }
 
 export async function savePlayer(player: Player): Promise<Player> {
-  const { data, error } = await supabase
-    .from("players")
-    .update({
-      glamour: player.glamour,
-      makeup: player.makeup,
-      fashion: player.fashion,
-      luster: player.luster,
-      energy: player.energy,
-      fame: player.fame,
-      last_energy_at: player.last_energy_at,
-    })
-    .eq("id", player.id)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.rpc("save_player_row", {
+    p_id: player.id,
+    p_glamour: player.glamour,
+    p_makeup: player.makeup,
+    p_fashion: player.fashion,
+    p_luster: player.luster,
+    p_energy: player.energy,
+    p_fame: player.fame,
+    p_last_energy_at: player.last_energy_at,
+  });
 
   if (error) throw error;
-  return normalisePlayer(data);
+  return normalisePlayer(data as Record<string, unknown>);
 }
