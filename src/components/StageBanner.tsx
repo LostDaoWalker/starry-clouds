@@ -1,5 +1,5 @@
-import { GameIcon } from "./GameIcon";
-import { stageInfo, stageLabel, type StageInfo } from "../game";
+import { stageInfo, stageLabel } from "../game";
+import { StageProgress } from "./StageProgress";
 
 type StageBannerProps = {
   stage: number;
@@ -7,28 +7,29 @@ type StageBannerProps = {
 };
 
 export function StageBanner({ stage, autoBattle }: StageBannerProps) {
-  const info: StageInfo = stageInfo(stage);
+  const info = stageInfo(stage);
 
   return (
-    <div className="stage-banner panel">
+    <div className="stage-banner panel panel-ornate">
       <div className="stage-campaign">
         <span className="stage-chapter">{info.chapterName}</span>
         <span className="stage-id">
           {stageLabel(stage)}
           {info.isBoss && <span className="boss-tag">BOSS</span>}
         </span>
+        <StageProgress stage={stage} />
       </div>
       <div className="stage-meta">
         {autoBattle && (
           <span className="auto-battle">
             <span className="auto-dot" />
-            AUTO BATTLE
+            AUTO
           </span>
         )}
-        <span className="stage-stars" aria-label="Campaign progress">
-          <GameIcon name="fame" size="sm" />
-          {info.global}
-        </span>
+        <div className="stage-cp-pill">
+          <span className="stage-cp-label">STAGE</span>
+          <span className="stage-cp-value">{info.global}</span>
+        </div>
       </div>
     </div>
   );

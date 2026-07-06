@@ -2,10 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ClassSelect } from "./components/ClassSelect";
 import {
   DamageFloaters,
+  HitFlash,
   VictoryFlash,
   useDamageFloaters,
+  useHitFlash,
   useVictoryFlash,
 } from "./components/DamageFloater";
+import { EnemyActor } from "./components/EnemyActor";
 import { GameIcon } from "./components/GameIcon";
 import { SpriteActor } from "./components/SpriteActor";
 import { StageBanner } from "./components/StageBanner";
@@ -90,6 +93,7 @@ export default function App() {
 
   const { floaters, spawn: spawnDamage } = useDamageFloaters();
   const { flash: victoryFlash, trigger: triggerVictory } = useVictoryFlash();
+  const { hit: enemyHit, trigger: triggerHit } = useHitFlash();
 
   const flashToast = useCallback((message: string) => {
     setToast(message);
@@ -148,6 +152,7 @@ export default function App() {
         combatRef.current = result.combat;
         setCombat(result.combat);
         spawnDamage(result.damage, result.crit);
+        if (!result.killed) triggerHit();
         setLog((lines) => [result.log, ...lines].slice(0, MAX_LOG));
 
         if (result.killed) {
@@ -161,7 +166,7 @@ export default function App() {
     }, BATTLE_TICK_MS);
 
     return () => window.clearInterval(id);
-  }, [player?.id, playerClass, spawnDamage, triggerVictory]);
+  }, [player?.id, playerClass, spawnDamage, triggerVictory, triggerHit]);
 
   const pickClass = (next: PlayerClass) => {
     savePlayerClass(next);
@@ -227,45 +232,62 @@ export default function App() {
   const classLabel = playerClass?.toUpperCase() ?? "???";
   const enemyHpPct = hpPercent(combat.hp, combat.enemy.maxHp);
 
+  const base = import.meta.env.BASE_URL;
+  const themeStyle = {
+    "--arena-bg": `url(${base}ui/arena-bg.jpg)`,
+    "--ui-corner": `url(${base}ui/ui-corner.png)`,
+  } as React.CSSProperties;
+
   return (
-    <main className="pbbg">
-      <header className="top-bar panel">
+    <main className={`pbbg pbbg-ch-${(info.chapter - 1) % 4}`} style={themeStyle}>
+      <header className="top-bar panel panel-ornate">
         <div className="brand">
           <h1>GLAMOUR</h1>
           <span className="zone">{info.chapterName}</span>
         </div>
         <div className="currencies">
-          <span className="currency luster">
+          <span className="currency-pill luster">
             <GameIcon name="luster" size="sm" />
-            {live.luster}
+            <span className="currency-val">{live.luster}</span>
           </span>
-          <span className="currency energy">
+          <span className="currency-pill energy">
             <GameIcon name="energy" size="sm" />
-            {live.energy}
+            <span className="currency-val">{live.energy}</span>
           </span>
-          <span className="currency fame">
+          <span className="currency-pill fame">
             <GameIcon name="fame" size="sm" />
-            {live.fame}
+            <span className="currency-val">{live.fame}</span>
           </span>
         </div>
       </header>
 
       <StageBanner stage={live.stage} autoBattle={!!playerClass} />
 
-      <section className="arena panel">
+      <section className={`arena panel panel-ornate ${combat.enemy.isBoss ? "arena-boss-fight" : ""}`}>
+        <div className="arena-bg" aria-hidden />
+        <div className="arena-overlay" aria-hidden />
+        {combat.enemy.isBoss && <div className="boss-warning">⚠ BOSS FIGHT</div>}
+
         <VictoryFlash active={victoryFlash} />
+        <HitFlash active={enemyHit} />
         <DamageFloaters floaters={floaters} />
 
         <div className="arena-side arena-player">
-          <p className="arena-label">{classLabel}</p>
-          <p className="arena-power">
-            <GameIcon name="power" size="sm" />
-            CP {power}
-          </p>
-          <div className="hp-bar hp-player">
-            <div className="hp-fill hp-fill-player" style={{ width: "100%" }} />
+          <div className="fighter-card">
+            <p className="arena-label">{classLabel}</p>
+            <div className="cp-badge">
+              <GameIcon name="power" size="sm" />
+              <span>{power}</span>
+            </div>
+            <div className="hp-bar hp-player hp-ornate">
+              <div className="hp-fill hp-fill-player" style={{ width: "100%" }} />
+            </div>
           </div>
-          {playerClass && <SpriteActor playerClass={playerClass} />}
+          <div className="hero-actor-wrap">
+            <div className="hero-aura" aria-hidden />
+            {playerClass && <SpriteActor playerClass={playerClass} />}
+            <div className="hero-platform" aria-hidden />
+          </div>
         </div>
 
         <div className="arena-center">
@@ -279,20 +301,24 @@ export default function App() {
         </div>
 
         <div className={`arena-side arena-enemy ${combat.enemy.isBoss ? "arena-boss" : ""}`}>
-          <p className="arena-label">{combat.enemy.name}</p>
-          <p className="arena-enemy-power">PWR {combat.enemy.power}</p>
-          <div className="hp-bar hp-enemy">
-            <div className="hp-fill hp-fill-enemy" style={{ width: `${enemyHpPct}%` }} />
-            <span className="hp-text">
-              {combat.hp}/{combat.enemy.maxHp}
-            </span>
+          <div className="fighter-card fighter-card-enemy">
+            <p className="arena-label">{combat.enemy.name}</p>
+            <div className="cp-badge cp-badge-enemy">
+              <span>{combat.enemy.power}</span>
+            </div>
+            <div className="hp-bar hp-enemy hp-ornate">
+              <div className="hp-fill hp-fill-enemy" style={{ width: `${enemyHpPct}%` }} />
+              <span className="hp-text">
+                {combat.hp}/{combat.enemy.maxHp}
+              </span>
+            </div>
           </div>
-          <div className={`enemy-silhouette ${combat.enemy.isBoss ? "enemy-boss" : ""}`} aria-hidden />
+          <EnemyActor enemy={combat.enemy} hit={enemyHit} />
         </div>
       </section>
 
       <section className="mid-row">
-        <div className="stats panel">
+        <div className="stats panel panel-ornate">
           <p className="panel-subtitle">HERO STATS</p>
           {STATS.map((s) => (
             <StatBar
@@ -305,7 +331,7 @@ export default function App() {
           ))}
         </div>
 
-        <div className="combat-log panel">
+        <div className="combat-log panel panel-ornate">
           <p className="log-title">BATTLE LOG</p>
           <ul>
             {log.map((line, i) => (
@@ -317,7 +343,8 @@ export default function App() {
         </div>
       </section>
 
-      <footer className="bottom-bar panel">
+      <footer className="bottom-bar panel panel-ornate">
+        <p className="skill-bar-title">HERO SKILLS</p>
         <nav className="actions">
           {(Object.keys(ACTIONS) as ActionKey[]).map((key) => (
             <button
@@ -327,8 +354,10 @@ export default function App() {
               disabled={busy !== null || !canAct(live, key)}
               onClick={() => act(key)}
             >
-              <GameIcon name={key} size="lg" />
-              {ACTIONS[key].label}
+              <span className="action-ring">
+                <GameIcon name={key} size="lg" />
+              </span>
+              <span className="action-label">{ACTIONS[key].label}</span>
             </button>
           ))}
         </nav>

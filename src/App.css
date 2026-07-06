@@ -1,7 +1,8 @@
 .pbbg {
-  --panel: #121018;
-  --panel-edge: #2a2038;
-  --glow: rgba(255, 45, 138, 0.25);
+  --panel: rgba(12, 8, 20, 0.92);
+  --panel-edge: #c9a227;
+  --panel-edge-dim: #5a4520;
+  --glow: rgba(255, 45, 138, 0.2);
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
   width: 100vw;
@@ -9,16 +10,45 @@
   max-height: 100dvh;
   overflow: hidden;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, var(--glow), transparent 70%),
-    var(--black);
+    radial-gradient(ellipse 90% 70% at 50% 100%, rgba(123, 47, 255, 0.15), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 50% 0%, var(--glow), transparent 70%),
+    linear-gradient(180deg, #0d0818 0%, #050308 100%);
 }
 
+/* Ornate MMO panel frame */
 .panel {
-  border: 2px solid var(--panel-edge);
+  position: relative;
+  border: 2px solid var(--panel-edge-dim);
+  background: linear-gradient(180deg, rgba(22, 16, 32, 0.95) 0%, var(--panel) 100%);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-    0 0 24px rgba(123, 47, 255, 0.12);
-  background: linear-gradient(180deg, #16121f 0%, var(--panel) 100%);
+    inset 0 1px 0 rgba(255, 208, 0, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+.panel-ornate::before,
+.panel-ornate::after {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  background-image: var(--ui-corner);
+  background-size: contain;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.85;
+}
+
+.panel-ornate::before {
+  top: -1px;
+  left: -1px;
+}
+
+.panel-ornate::after {
+  bottom: -1px;
+  right: -1px;
+  transform: rotate(180deg);
 }
 
 .top-bar {
@@ -26,49 +56,74 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.55rem 1rem;
-  margin: 0.5rem 0.5rem 0;
+  padding: 0.5rem 1rem 0.5rem 1.2rem;
+  margin: 0.45rem 0.45rem 0;
+  z-index: 3;
 }
 
 .brand h1 {
   margin: 0;
   font-family: "Bebas Neue", sans-serif;
-  font-size: clamp(1.6rem, 4vw, 2.2rem);
-  letter-spacing: 0.12em;
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  letter-spacing: 0.14em;
   line-height: 1;
-  color: var(--pink);
-  text-shadow: 2px 2px 0 var(--violet);
+  background: linear-gradient(180deg, #fff 0%, var(--pink) 60%, var(--violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
 }
 
 .zone {
   display: block;
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.75;
   color: var(--cyan);
+  text-shadow: 0 0 8px var(--cyan);
 }
 
 .currencies {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.85rem;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  gap: 0.45rem;
 }
 
-.currency {
+.currency-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem 0.2rem 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 208, 0, 0.35);
+  background: linear-gradient(180deg, rgba(40, 30, 10, 0.9), rgba(10, 8, 5, 0.95));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 8px rgba(0, 0, 0, 0.4);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.currency-val {
+  min-width: 1.5em;
+  text-align: right;
+}
+
+.luster .currency-val {
+  color: var(--gold);
+}
+
+.energy .currency-val {
+  color: var(--cyan);
+}
+
+.fame .currency-val {
+  color: var(--pink);
 }
 
 .game-icon {
   display: block;
   object-fit: contain;
   flex-shrink: 0;
-  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));
 }
 
 .game-icon-sm {
@@ -82,127 +137,229 @@
 }
 
 .game-icon-lg {
-  width: 2rem;
-  height: 2rem;
+  width: 2.1rem;
+  height: 2.1rem;
 }
 
-.luster {
-  color: var(--gold);
-}
-
-.energy {
-  color: var(--cyan);
-}
-
-.fame {
-  color: var(--pink);
-}
-
+/* Stage banner */
 .stage-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin: 0.35rem 0.5rem 0;
-  padding: 0.4rem 0.85rem;
+  margin: 0.3rem 0.45rem 0;
+  padding: 0.35rem 0.85rem 0.45rem 1rem;
+  z-index: 3;
 }
 
 .stage-campaign {
   display: flex;
   flex-direction: column;
-  gap: 0.1rem;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
 .stage-chapter {
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  opacity: 0.65;
   color: var(--cyan);
+  opacity: 0.8;
 }
 
 .stage-id {
   font-family: "Bebas Neue", sans-serif;
-  font-size: 1.35rem;
-  letter-spacing: 0.12em;
+  font-size: 1.4rem;
+  letter-spacing: 0.1em;
   color: var(--gold);
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  text-shadow: 0 0 12px rgba(255, 208, 0, 0.4);
 }
 
 .boss-tag {
-  font-size: 0.65rem;
-  padding: 0.1rem 0.35rem;
-  background: var(--pink);
-  color: var(--black);
-  letter-spacing: 0.1em;
-  animation: boss-pulse 1.2s ease infinite;
+  font-size: 0.6rem;
+  padding: 0.12rem 0.4rem;
+  background: linear-gradient(180deg, var(--pink), #c0105a);
+  color: #fff;
+  letter-spacing: 0.12em;
+  border-radius: 2px;
+  animation: boss-pulse 1s ease infinite;
+  box-shadow: 0 0 12px var(--pink);
 }
 
 @keyframes boss-pulse {
   0%,
   100% {
-    opacity: 1;
+    transform: scale(1);
   }
   50% {
-    opacity: 0.7;
+    transform: scale(1.05);
   }
+}
+
+.stage-progress {
+  display: flex;
+  gap: 3px;
+  margin-top: 0.15rem;
+}
+
+.stage-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2a2040;
+  border: 1px solid #443360;
+  transition: all 0.25s ease;
+}
+
+.stage-dot-cleared {
+  background: var(--violet);
+  border-color: var(--pink);
+  box-shadow: 0 0 4px var(--pink);
+}
+
+.stage-dot-current {
+  background: var(--gold);
+  border-color: #fff;
+  box-shadow: 0 0 8px var(--gold);
+  transform: scale(1.25);
+}
+
+.stage-dot-boss {
+  border-radius: 2px;
+  width: 10px;
 }
 
 .stage-meta {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
+  flex-shrink: 0;
 }
 
 .auto-battle {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.62rem;
-  letter-spacing: 0.12em;
+  gap: 0.3rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
   color: var(--pink);
-  font-weight: 700;
+  font-weight: 800;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid rgba(255, 45, 138, 0.4);
+  border-radius: 3px;
+  background: rgba(255, 45, 138, 0.1);
 }
 
 .auto-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--pink);
-  animation: blink 1s ease infinite;
+  animation: blink 0.8s ease infinite;
 }
 
 @keyframes blink {
   0%,
   100% {
     opacity: 1;
+    box-shadow: 0 0 6px var(--pink);
   }
   50% {
     opacity: 0.2;
   }
 }
 
-.stage-stars {
-  display: inline-flex;
+.stage-cp-pill {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--gold);
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--gold-dark);
+  background: linear-gradient(180deg, #2a1f08, #120d04);
+  border-radius: 4px;
 }
 
+.stage-cp-label {
+  font-size: 0.48rem;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  opacity: 0.7;
+}
+
+.stage-cp-value {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.1rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+/* Arena — League of Angels battle stage */
 .arena {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: end;
-  gap: 0.5rem;
-  margin: 0.35rem 0.5rem;
-  padding: 0.75rem 1rem 0.5rem;
+  gap: 0.25rem;
+  margin: 0.3rem 0.45rem;
+  padding: 0.5rem 0.75rem 0.35rem;
   min-height: 0;
   overflow: hidden;
   position: relative;
+  border-color: var(--gold-dark);
+}
+
+.arena-bg {
+  position: absolute;
+  inset: 0;
+  background-image: var(--arena-bg);
+  background-size: cover;
+  background-position: center 30%;
+  z-index: 0;
+}
+
+.arena-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(5, 3, 10, 0.55) 0%, transparent 30%, transparent 70%, rgba(5, 3, 10, 0.75) 100%),
+    radial-gradient(ellipse 80% 60% at 50% 50%, transparent 30%, rgba(0, 0, 0, 0.5) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.arena-boss-fight {
+  border-color: var(--pink);
+  box-shadow:
+    inset 0 0 40px rgba(255, 45, 138, 0.15),
+    0 0 30px rgba(255, 45, 138, 0.2);
+}
+
+.boss-warning {
+  position: absolute;
+  top: 0.35rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  color: #fff;
+  background: linear-gradient(90deg, transparent, rgba(255, 45, 138, 0.9), transparent);
+  padding: 0.15rem 1.5rem;
+  animation: boss-warn 1.5s ease infinite;
+  pointer-events: none;
+}
+
+@keyframes boss-warn {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 .arena-side {
@@ -212,34 +369,52 @@
   justify-content: flex-end;
   min-width: 0;
   height: 100%;
+  position: relative;
+  z-index: 3;
+}
+
+.fighter-card {
+  width: 100%;
+  max-width: 170px;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.fighter-card-enemy .arena-label {
+  color: var(--hp-red);
 }
 
 .arena-label {
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.15rem;
   font-family: "Bebas Neue", sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.14em;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
   color: var(--gold);
+  text-shadow: 0 1px 4px #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.arena-power {
+.cp-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  margin: 0 0 0.25rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  opacity: 0.85;
+  gap: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  margin-bottom: 0.2rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.9rem;
   color: var(--gold);
-  font-weight: 700;
+  background: linear-gradient(180deg, rgba(60, 45, 10, 0.9), rgba(20, 15, 5, 0.95));
+  border: 1px solid var(--gold-dark);
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
-.arena-enemy-power {
-  margin: 0 0 0.25rem;
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  opacity: 0.6;
-  color: var(--cyan);
+.cp-badge-enemy {
+  color: var(--hp-red);
+  border-color: #8b2040;
+  background: linear-gradient(180deg, rgba(60, 10, 25, 0.9), rgba(20, 5, 10, 0.95));
 }
 
 .arena-center {
@@ -247,45 +422,94 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  padding-bottom: 2rem;
+  gap: 0.3rem;
+  padding-bottom: 1.5rem;
+  z-index: 4;
 }
 
 .arena-vs {
   font-family: "Bebas Neue", sans-serif;
-  font-size: 1.5rem;
-  color: var(--pink);
-  text-shadow: 0 0 12px var(--pink);
+  font-size: 1.6rem;
+  color: var(--gold);
+  text-shadow:
+    0 0 20px var(--pink),
+    0 0 40px var(--violet),
+    2px 2px 0 #000;
+  animation: vs-pulse 2s ease infinite;
+}
+
+@keyframes vs-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
 }
 
 .star-rating {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--gold);
-  letter-spacing: 0.1em;
-  text-shadow: 0 0 8px var(--gold);
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 10px var(--gold);
+  animation: star-pop 0.5s ease;
 }
 
+@keyframes star-pop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Ornate HP bars */
 .hp-bar {
   position: relative;
-  width: min(32vw, 150px);
-  height: 10px;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  margin-bottom: 0.35rem;
+  width: 100%;
+  height: 14px;
+  background: #1a0a10;
+  border: 2px solid #443320;
+  border-radius: 2px;
   overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hp-ornate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 208, 0, 0.2);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .hp-fill {
   height: 100%;
-  transition: width 0.25s ease;
+  transition: width 0.2s ease;
+  position: relative;
+}
+
+.hp-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent);
 }
 
 .hp-fill-player {
-  background: linear-gradient(90deg, #2ecc71, #27ae60);
+  background: linear-gradient(180deg, #5dff9a, #1a9e50);
 }
 
 .hp-fill-enemy {
-  background: linear-gradient(90deg, var(--violet), var(--pink));
+  background: linear-gradient(180deg, #ff6b8a, #c01040);
 }
 
 .hp-text {
@@ -294,81 +518,67 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--white);
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #fff;
   text-shadow: 0 1px 2px #000;
+  z-index: 3;
 }
 
-.damage-floaters {
+/* Hero actor */
+.hero-actor-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.hero-aura {
   position: absolute;
-  inset: 0;
+  bottom: 12%;
+  width: 70%;
+  height: 20%;
+  background: radial-gradient(ellipse, rgba(255, 208, 0, 0.35), transparent 70%);
+  animation: aura-pulse 2s ease infinite;
   pointer-events: none;
-  z-index: 5;
-  overflow: hidden;
 }
 
-.damage-num {
-  position: absolute;
-  font-family: "Bebas Neue", sans-serif;
-  font-size: 1.4rem;
-  color: var(--gold);
-  text-shadow: 0 0 8px var(--gold), 2px 2px 0 #000;
-  animation: float-up 0.9s ease forwards;
-  left: 62%;
-  top: 35%;
-}
-
-.damage-crit {
-  color: var(--pink);
-  font-size: 1.7rem;
-  text-shadow: 0 0 12px var(--pink), 2px 2px 0 #000;
-}
-
-@keyframes float-up {
-  0% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+@keyframes aura-pulse {
+  0%,
   100% {
-    opacity: 0;
-    transform: translateY(-48px) scale(1.15);
+    opacity: 0.6;
+    transform: scaleX(1);
   }
-}
-
-.victory-flash {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.35), transparent 70%);
-  pointer-events: none;
-  z-index: 4;
-  animation: victory 0.6s ease forwards;
-}
-
-@keyframes victory {
-  0% {
-    opacity: 0;
-  }
-  30% {
+  50% {
     opacity: 1;
+    transform: scaleX(1.1);
   }
-  100% {
-    opacity: 0;
-  }
+}
+
+.hero-platform {
+  position: absolute;
+  bottom: 0;
+  width: 80%;
+  height: 12px;
+  background: radial-gradient(ellipse, rgba(255, 208, 0, 0.5), transparent 70%);
+  border-radius: 50%;
+  filter: blur(2px);
 }
 
 .sprite-actor {
   display: block;
-  max-height: min(42dvh, 360px);
+  max-height: min(38dvh, 320px);
   width: auto;
   max-width: 100%;
   object-fit: contain;
   object-position: bottom center;
-  image-rendering: auto;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 12px rgba(255, 45, 138, 0.2));
   user-select: none;
   pointer-events: none;
+  position: relative;
+  z-index: 1;
 }
 
 .sprite-left {
@@ -377,108 +587,279 @@
 
 .sprite-portrait {
   max-height: 5.5rem;
-  width: auto;
 }
 
-.arena-enemy .arena-label {
-  color: var(--cyan);
+/* Enemy actor */
+.enemy-actor-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  transition: transform 0.1s ease, filter 0.1s ease;
 }
 
-.enemy-silhouette {
-  width: min(28vw, 140px);
-  height: min(30dvh, 240px);
-  background:
-    linear-gradient(180deg, transparent 10%, rgba(0, 229, 255, 0.08) 100%),
-    radial-gradient(ellipse at 50% 30%, #33114f 0%, #0a0a0a 70%);
-  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
-  border: 2px solid rgba(0, 229, 255, 0.35);
+.enemy-hit {
+  animation: enemy-shake 0.22s ease;
+  filter: brightness(1.4) saturate(1.3);
 }
 
-.enemy-boss {
-  border-color: var(--pink);
-  box-shadow: 0 0 20px rgba(255, 45, 138, 0.4);
-  background:
-    linear-gradient(180deg, transparent 10%, rgba(255, 45, 138, 0.15) 100%),
-    radial-gradient(ellipse at 50% 30%, #4a1040 0%, #0a0a0a 70%);
-  animation: boss-glow 2s ease infinite;
-}
-
-@keyframes boss-glow {
+@keyframes enemy-shake {
   0%,
   100% {
-    box-shadow: 0 0 20px rgba(255, 45, 138, 0.4);
+    transform: translateX(0);
   }
-  50% {
-    box-shadow: 0 0 32px rgba(255, 45, 138, 0.65);
+  20% {
+    transform: translateX(6px);
   }
+  40% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(4px);
+  }
+  80% {
+    transform: translateX(-2px);
+  }
+}
+
+.enemy-aura {
+  position: absolute;
+  bottom: 10%;
+  width: 75%;
+  height: 18%;
+  background: radial-gradient(ellipse, rgba(0, 229, 255, 0.25), transparent 70%);
+  pointer-events: none;
+}
+
+.enemy-actor-boss .enemy-aura {
+  background: radial-gradient(ellipse, rgba(255, 45, 138, 0.45), transparent 70%);
+  animation: aura-pulse 1.5s ease infinite;
+}
+
+.enemy-frame {
+  position: relative;
+  z-index: 1;
+}
+
+.enemy-sprite {
+  display: block;
+  max-height: min(34dvh, 280px);
+  width: auto;
+  max-width: min(36vw, 180px);
+  object-fit: contain;
+  object-position: bottom center;
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.8));
+  transform: scaleX(-1);
+}
+
+.enemy-actor-boss .enemy-sprite {
+  max-height: min(40dvh, 340px);
+  max-width: min(42vw, 220px);
+  filter: drop-shadow(0 8px 28px rgba(255, 45, 138, 0.5));
+}
+
+.enemy-platform {
+  position: absolute;
+  bottom: 0;
+  width: 85%;
+  height: 10px;
+  background: radial-gradient(ellipse, rgba(0, 229, 255, 0.35), transparent 70%);
+  border-radius: 50%;
+}
+
+.enemy-actor-boss .enemy-platform {
+  background: radial-gradient(ellipse, rgba(255, 45, 138, 0.5), transparent 70%);
 }
 
 .arena-boss .arena-label {
   color: var(--pink);
+  text-shadow: 0 0 8px var(--pink);
 }
 
-.enemy-hp {
-  width: min(32vw, 160px);
-  height: 8px;
-  background: #1a1a1a;
-  border: 1px solid #333;
+/* Combat FX */
+.damage-floaters {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 8;
+  overflow: hidden;
 }
 
-.enemy-hp-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--violet), var(--pink));
-  transition: width 0.4s ease;
+.damage-num {
+  position: absolute;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.5rem;
+  color: var(--gold);
+  text-shadow:
+    0 0 10px var(--gold),
+    2px 2px 0 #000,
+    -1px -1px 0 #000;
+  animation: float-up 0.95s ease forwards;
+  white-space: nowrap;
 }
 
+.damage-crit {
+  color: var(--pink);
+  font-size: 2rem;
+  text-shadow:
+    0 0 16px var(--pink),
+    0 0 30px var(--violet),
+    2px 2px 0 #000;
+  animation: crit-pop 0.95s ease forwards;
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(0.8);
+  }
+  20% {
+    transform: translateY(-8px) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-56px) scale(1);
+  }
+}
+
+@keyframes crit-pop {
+  0% {
+    opacity: 1;
+    transform: scale(0.5);
+  }
+  30% {
+    transform: scale(1.3);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(1);
+  }
+}
+
+.hit-flash {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 7;
+  pointer-events: none;
+  animation: hit-flash 0.22s ease forwards;
+}
+
+@keyframes hit-flash {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.victory-flash {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(255, 208, 0, 0.4), transparent 65%);
+  pointer-events: none;
+  z-index: 9;
+  animation: victory 0.7s ease forwards;
+}
+
+.victory-text {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2.5rem;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  text-shadow:
+    0 0 30px var(--gold),
+    0 0 60px var(--pink),
+    3px 3px 0 #000;
+  animation: victory-text 0.7s ease forwards;
+}
+
+@keyframes victory {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes victory-text {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* Mid row */
 .mid-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 0.5rem;
-  margin: 0 0.5rem;
+  gap: 0.4rem;
+  margin: 0 0.45rem;
   min-height: 0;
+  z-index: 3;
 }
 
 .stats {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.55rem;
-  padding: 0.55rem 0.85rem;
+  gap: 0.45rem;
+  padding: 0.45rem 0.75rem 0.5rem 0.9rem;
 }
 
 .panel-subtitle {
-  margin: 0 0 0.15rem;
+  margin: 0 0 0.1rem;
   font-family: "Bebas Neue", sans-serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  color: var(--pink);
-  opacity: 0.75;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  opacity: 0.8;
 }
 
 .stat-head {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
 }
 
 .stat-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   font-family: "Bebas Neue", sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.1em;
+  font-size: 0.92rem;
+  letter-spacing: 0.08em;
 }
 
 .stat-value {
-  font-size: 0.75rem;
-  opacity: 0.65;
+  font-size: 0.72rem;
+  color: var(--gold);
+  font-weight: 700;
 }
 
 .stat-track {
-  height: 8px;
-  background: #1a1a1a;
+  height: 10px;
+  background: #120a18;
+  border: 1px solid #332848;
+  border-radius: 2px;
   position: relative;
   overflow: hidden;
 }
@@ -487,9 +868,9 @@
   content: "";
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, #333 1px, transparent 1px);
+  background-image: radial-gradient(circle, #2a2040 1px, transparent 1px);
   background-size: 4px 4px;
-  opacity: 0.45;
+  opacity: 0.5;
 }
 
 .stat-fill {
@@ -497,20 +878,31 @@
   transition: width 0.35s ease;
   position: relative;
   z-index: 1;
+  border-radius: 1px;
+}
+
+.stat-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent);
 }
 
 .combat-log {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 0.5rem 0.75rem;
+  padding: 0.45rem 0.7rem 0.45rem 0.85rem;
   overflow: hidden;
 }
 
 .log-title {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.25rem;
   font-family: "Bebas Neue", sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   letter-spacing: 0.16em;
   color: var(--cyan);
 }
@@ -524,10 +916,10 @@
 }
 
 .combat-log li {
-  font-size: 0.72rem;
-  line-height: 1.35;
-  padding: 0.15rem 0;
-  opacity: 0.9;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  padding: 0.12rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -540,40 +932,68 @@
 
 .combat-log li.log-victory {
   color: var(--pink);
+  font-weight: 700;
 }
 
+/* Skill bar — LoA circular buttons */
 .bottom-bar {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  margin: 0.5rem;
-  padding: 0.55rem 0.65rem 0.65rem;
+  gap: 0.25rem;
+  margin: 0.4rem 0.45rem 0.45rem;
+  padding: 0.4rem 0.6rem 0.5rem;
+  z-index: 3;
+}
+
+.skill-bar-title {
+  margin: 0;
+  text-align: center;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--gold-dark);
+  opacity: 0.9;
 }
 
 .actions {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  display: flex;
+  justify-content: center;
+  gap: clamp(0.5rem, 4vw, 1.5rem);
 }
 
 .action {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.2rem;
+  gap: 0.15rem;
   border: none;
-  padding: 0.55rem 0.35rem 0.65rem;
-  font-family: "Bebas Neue", sans-serif;
-  font-size: clamp(1.1rem, 3.5vw, 1.45rem);
-  letter-spacing: 0.1em;
+  padding: 0;
+  background: transparent;
   cursor: pointer;
-  color: var(--black);
   transition: transform 0.12s ease, opacity 0.12s ease;
 }
 
-.action .game-icon {
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+.action-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(3.2rem, 12vw, 4.2rem);
+  height: clamp(3.2rem, 12vw, 4.2rem);
+  border-radius: 50%;
+  border: 3px solid var(--gold-dark);
+  box-shadow:
+    inset 0 2px 8px rgba(255, 255, 255, 0.15),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: box-shadow 0.15s, transform 0.12s;
+}
+
+.action-label {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: var(--white);
+  text-shadow: 0 1px 3px #000;
 }
 
 .action:disabled {
@@ -581,31 +1001,43 @@
   cursor: not-allowed;
 }
 
-.action:not(:disabled):active {
-  transform: scale(0.97);
+.action:not(:disabled):hover .action-ring {
+  box-shadow:
+    inset 0 2px 8px rgba(255, 255, 255, 0.25),
+    0 0 16px rgba(255, 208, 0, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-.action-primp {
-  background: var(--cyan);
+.action:not(:disabled):active .action-ring {
+  transform: scale(0.94);
 }
 
-.action-shop {
-  background: var(--gold);
+.action-primp .action-ring {
+  background: radial-gradient(circle at 35% 30%, #4dffff, #0099aa 60%, #004455);
 }
 
-.action-strut {
-  background: var(--pink);
+.action-shop .action-ring {
+  background: radial-gradient(circle at 35% 30%, #ffe566, #cc9900 60%, #886600);
+}
+
+.action-strut .action-ring {
+  background: radial-gradient(circle at 35% 30%, #ff6bb8, #cc1060 60%, #880040);
+}
+
+.action .game-icon {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .idle-hint {
   margin: 0;
   text-align: center;
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+  font-size: 0.55rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
+/* Class select */
 .class-select {
   position: fixed;
   inset: 0;
@@ -616,8 +1048,8 @@
   justify-content: center;
   gap: 1rem;
   padding: 1rem;
-  background: rgba(5, 5, 8, 0.92);
-  backdrop-filter: blur(6px);
+  background: rgba(5, 3, 10, 0.94);
+  backdrop-filter: blur(8px);
 }
 
 .class-select-title {
@@ -625,7 +1057,10 @@
   font-family: "Bebas Neue", sans-serif;
   font-size: clamp(1.8rem, 5vw, 2.5rem);
   letter-spacing: 0.2em;
-  color: var(--pink);
+  background: linear-gradient(180deg, #fff, var(--pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .class-grid {
@@ -641,16 +1076,17 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.5rem 0.35rem 0.65rem;
-  border: 2px solid var(--panel-edge);
-  background: var(--panel);
+  border: 2px solid var(--gold-dark);
+  background: linear-gradient(180deg, #1a1228, #0d0818);
   color: var(--white);
   cursor: pointer;
-  transition: border-color 0.15s, transform 0.12s;
+  transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
 }
 
 .class-card:hover {
-  border-color: var(--pink);
-  transform: translateY(-2px);
+  border-color: var(--gold);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(255, 45, 138, 0.25);
 }
 
 .class-name {
@@ -661,10 +1097,10 @@
 }
 
 .class-tag {
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   text-align: center;
   line-height: 1.25;
-  opacity: 0.7;
+  opacity: 0.65;
   padding: 0 0.2rem;
 }
 
@@ -674,14 +1110,16 @@
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
-  padding: 0.5rem 1.2rem;
-  background: var(--violet);
+  padding: 0.5rem 1.4rem;
+  background: linear-gradient(180deg, var(--violet), #4a1090);
+  border: 1px solid var(--gold-dark);
   font-family: "Bebas Neue", sans-serif;
   font-size: 1.1rem;
   letter-spacing: 0.15em;
   pointer-events: none;
   z-index: 30;
-  animation: pop 1.4s ease forwards;
+  animation: pop 1.6s ease forwards;
+  box-shadow: 0 4px 20px rgba(123, 47, 255, 0.5);
 }
 
 @keyframes pop {
@@ -744,20 +1182,28 @@
   }
 
   .arena-center {
-    padding-bottom: 1rem;
+    padding-bottom: 0.75rem;
   }
 
   .sprite-actor:not(.sprite-portrait) {
-    max-height: min(28dvh, 220px);
+    max-height: min(26dvh, 200px);
+  }
+
+  .enemy-sprite {
+    max-height: min(24dvh, 180px);
   }
 }
 
 @media (max-height: 520px) {
   .sprite-actor:not(.sprite-portrait) {
-    max-height: 22dvh;
+    max-height: 20dvh;
   }
 
-  .enemy-silhouette {
-    height: 22dvh;
+  .enemy-sprite {
+    max-height: 18dvh;
+  }
+
+  .stage-banner {
+    padding: 0.25rem 0.6rem;
   }
 }

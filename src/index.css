@@ -3,8 +3,11 @@
   --pink: #ff2d8a;
   --cyan: #00e5ff;
   --gold: #ffd000;
+  --gold-dark: #b8860b;
   --violet: #7b2fff;
   --white: #f5f0eb;
+  --hp-green: #3dff8a;
+  --hp-red: #ff3d6b;
   font-family: "DM Sans", system-ui, sans-serif;
   color: var(--white);
   background: var(--black);
