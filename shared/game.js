@@ -1,13 +1,6 @@
-export type Player = {
-  id: string;
-  glamour: number;
-  makeup: number;
-  fashion: number;
-  luster: number;
-  energy: number;
-  fame: number;
-  last_energy_at: string;
-};
+// GLAMOUR core game rules. Framework-agnostic ESM shared by the React client
+// (display + optimistic UI) and the Express API (authoritative persistence).
+// Keep this pure: no DOM, no Node, no network.
 
 export const MAX_ENERGY = 100;
 export const ENERGY_REGEN_MS = 30_000;
@@ -41,11 +34,13 @@ export const ACTIONS = {
     luster: 15,
     fame: 10,
   },
-} as const;
+};
 
-export type ActionKey = keyof typeof ACTIONS;
+export function isActionKey(value) {
+  return Object.prototype.hasOwnProperty.call(ACTIONS, value);
+}
 
-export function regenEnergy(player: Player, now = Date.now()): Player {
+export function regenEnergy(player, now = Date.now()) {
   const elapsed = now - new Date(player.last_energy_at).getTime();
   const ticks = Math.floor(elapsed / ENERGY_REGEN_MS);
   if (ticks <= 0 || player.energy >= MAX_ENERGY) return player;
@@ -62,14 +57,21 @@ export function regenEnergy(player: Player, now = Date.now()): Player {
   };
 }
 
-export function canAct(player: Player, action: ActionKey): boolean {
+export function canAct(player, action) {
   const cost = ACTIONS[action];
   if (player.energy < cost.energy) return false;
   if (cost.luster < 0 && player.luster < Math.abs(cost.luster)) return false;
   return true;
 }
 
-export function applyAction(player: Player, action: ActionKey): Player {
+export function blockReason(player, action) {
+  const cost = ACTIONS[action];
+  if (cost.luster < 0 && player.luster < Math.abs(cost.luster)) return "Need more luster";
+  if (player.energy < cost.energy) return "Not enough energy";
+  return null;
+}
+
+export function applyAction(player, action) {
   const cost = ACTIONS[action];
   return {
     ...player,
@@ -82,6 +84,6 @@ export function applyAction(player: Player, action: ActionKey): Player {
   };
 }
 
-export function statPercent(value: number): number {
+export function statPercent(value) {
   return Math.min(100, Math.round((value / 100) * 100));
 }

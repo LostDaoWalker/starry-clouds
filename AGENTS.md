@@ -2,40 +2,35 @@
 
 ## Cursor Cloud specific instructions
 
-GLAMOUR is a single-product repo: a React 19 + Vite 6 one-screen PBBG whose only
-backend is a hosted Supabase project (Postgres + anonymous auth + RLS). The
-browser talks to Supabase directly; there is no separate backend API. Standard
-commands live in `package.json` and `README.md` — reference those rather than
-duplicating.
+GLAMOUR is a single-product repo: a React 19 + Vite 6 one-screen PBBG backed by
+an Express API (`server/`) over **Railway Postgres**. Standard commands live in
+`package.json` and `README.md` — reference those rather than duplicating.
+
+### Architecture (non-obvious)
+- The browser does **not** talk to the database directly and there is no auth
+  provider. The Express API (`server/index.js` + `server/db.js`) is the sole
+  authority: it applies energy regen, validates each action, and persists under
+  a `SELECT ... FOR UPDATE` row lock. The client only POSTs an action name.
+- Player identity is an unguessable UUID in an `HttpOnly` `glamour_pid` cookie.
+- Core game rules live once in `shared/game.js` (plain ESM, typed by
+  `shared/game.d.ts`) and are imported by both the client (`src/`) and the
+  server. Keep that module pure (no DOM, no Node, no network).
 
 ### Running (dev)
-- `npm run dev` is the primary dev workflow (Vite on port `5173`, see `vite.config.ts`).
-- The app requires a gitignored `.env` (see `.env.example`) with:
-  - `VITE_SUPABASE_URL=https://rkqchyduzukazkliucxh.supabase.co`
-  - `VITE_SUPABASE_ANON_KEY=<anon/publishable key>` — retrievable via the
-    Supabase MCP `get_publishable_keys` for project ref `rkqchyduzukazkliucxh`
-    (the anon key is a client-public key that also gets embedded in the built
-    frontend, so it is not a secret).
-  - Without these vars the app throws `Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY` on load (`src/lib/supabase.ts`).
-
-### Supabase requirement (non-obvious gotcha)
-- The app authenticates every player via `supabase.auth.signInAnonymously()`.
-  **Anonymous sign-ins must be enabled** on the Supabase project
-  (Dashboard → Authentication → Sign In / Providers → Anonymous). If disabled,
-  the app renders the error screen `Anonymous sign-ins are disabled` and no
-  gameplay/persistence works. This toggle is not editable via SQL or the
-  Supabase MCP — it must be set in the dashboard.
-- The `public.players` table + RLS policies come from
-  `supabase/migrations/20260706000000_glamour_game.sql` and are already applied
-  on project `rkqchyduzukazkliucxh`.
+- `npm run dev` runs the API (`node --watch server/index.js`, port `3000`) and
+  Vite (port `5173`, proxying `/api` → `:3000`) together via `concurrently`.
+- Requires a gitignored `.env` with `DATABASE_URL` (see `.env.example`). The API
+  throws `DATABASE_URL is not set` on startup if it is missing, and `dev:api`
+  uses `--env-file=.env` so that file must exist for local dev.
+- A Postgres must be reachable at `DATABASE_URL`. Options: a Railway Postgres
+  connection string, or a local Postgres (`sudo pg_ctlcluster 16 main start`
+  after installing `postgresql`). The `players` table is auto-created on startup.
+- `npm start` (`node server/index.js`, the Railway prod entrypoint) does **not**
+  load `.env`; it expects `DATABASE_URL`/`PORT` from the environment (Railway
+  injects them). To run the prod path locally, build first (`npm run build`) then
+  `node --env-file=.env server/index.js`.
 
 ### Lint / test / build
 - There is **no lint script and no test suite** in this repo.
 - `npm run build` runs `tsc -b` (TypeScript typecheck) then `vite build`; treat
-  it as the typecheck/CI gate.
-
-### Production server caveat
-- `npm start` (`server/index.js`, the Railway prod entrypoint) currently crashes
-  under Express 5 with `Missing parameter name at index 1: *` because the
-  `app.get("*")` catch-all route is incompatible with path-to-regexp v8. This
-  does not affect local development — use `npm run dev`.
+  it as the typecheck/CI gate. The server is plain JS and is not type-checked.

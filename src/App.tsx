@@ -4,11 +4,12 @@ import {
   type ActionKey,
   type Player,
   applyAction,
+  blockReason,
   canAct,
   regenEnergy,
   statPercent,
-} from "./game";
-import { ensurePlayer, savePlayer } from "./lib/supabase";
+} from "../shared/game.js";
+import { fetchPlayer, sendAction } from "./lib/api";
 import "./App.css";
 
 type StatKey = "glamour" | "makeup" | "fashion";
@@ -51,7 +52,7 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
-    ensurePlayer()
+    fetchPlayer()
       .then(setPlayer)
       .catch((e: Error) => setError(e.message));
   }, []);
@@ -74,11 +75,7 @@ export default function App() {
       if (!player || busy) return;
       const refreshed = regenEnergy(player);
       if (!canAct(refreshed, action)) {
-        flash(
-          action === "shop" && refreshed.luster < 8
-            ? "Need more luster"
-            : "Not enough energy"
-        );
+        flash(blockReason(refreshed, action) ?? "Not enough energy");
         return;
       }
 
@@ -87,7 +84,7 @@ export default function App() {
       setPlayer(next);
 
       try {
-        const saved = await savePlayer(next);
+        const saved = await sendAction(action);
         setPlayer(saved);
         flash(`${ACTIONS[action].label}!`);
       } catch (e) {
@@ -105,7 +102,7 @@ export default function App() {
       <main className="screen error-screen">
         <p className="error-title">GLAMOUR</p>
         <p className="error-msg">{error}</p>
-        <p className="error-hint">Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY</p>
+        <p className="error-hint">Is the game server running?</p>
       </main>
     );
   }
