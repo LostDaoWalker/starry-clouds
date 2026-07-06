@@ -1,0 +1,39 @@
+name: Deploy to Fly.io
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: fly-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy GLAMOUR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Ensure Fly Postgres
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          if ! flyctl postgres list 2>/dev/null | grep -q glamour-db; then
+            flyctl postgres create \
+              --name glamour-db \
+              --region iad \
+              --initial-cluster-size 1 \
+              --vm-size shared-cpu-1x \
+              --volume-size 1 \
+              --yes
+          fi
+          flyctl postgres attach glamour-db --app starry-clouds --yes || true
+
+      - name: Deploy app
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --remote-only
