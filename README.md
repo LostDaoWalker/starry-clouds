@@ -15,38 +15,40 @@ Energy regenerates over time. Progress persists via Supabase.
 ## Stack
 
 - **Frontend** — React + Vite, single screen, dead-minimal UI
-- **Database** — Supabase (Postgres + anonymous auth + RLS)
+- **Backend** — Express API (`server/`) that owns all game logic and persistence
+- **Database** — Railway Postgres (accessed via `DATABASE_URL`)
 - **Hosting** — Railway
+
+Player identity is an anonymous, unguessable id stored in an `HttpOnly` cookie —
+no login. The browser only sends action names; the server validates energy/luster
+and writes stats under a row lock, so state can't be forged from the client.
 
 ## Setup
 
-### 1. Supabase
+### 1. Local dev
 
-1. Create a project at [supabase.com](https://supabase.com)
-2. Enable **Anonymous sign-ins**: Authentication → Providers → Anonymous
-3. Run the migration in `supabase/migrations/20260706000000_glamour_game.sql` via the SQL Editor
-4. Copy your project URL and anon key from Settings → API
-
-### 2. Local dev
+Needs a reachable Postgres. Either add a Railway Postgres and use its connection
+string, or run Postgres locally.
 
 ```bash
-cp .env.example .env   # fill in Supabase values
+cp .env.example .env   # set DATABASE_URL
 npm install
-npm run dev
+npm run dev            # Express API on :3000 + Vite (proxying /api) on :5173
 ```
 
-### 3. Railway
+The `players` table is created automatically on server startup.
+
+### 2. Railway
 
 1. Connect this repo to [Railway](https://railway.app)
-2. Set environment variables:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
+2. Add a **Postgres** database to the project — Railway injects `DATABASE_URL`
+   into the app service automatically.
 3. Railway reads `railway.toml` — builds with `npm run build`, starts with `npm start`
+   (the Express server serves the built frontend and the API on `$PORT`).
 
 ## Environment
 
 | Variable | Description |
 |---|---|
-| `VITE_SUPABASE_URL` | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase publishable/anon key |
+| `DATABASE_URL` | Postgres connection string (Railway provides this). Append `?sslmode=require` for the public proxy. |
 | `PORT` | Set by Railway automatically |
