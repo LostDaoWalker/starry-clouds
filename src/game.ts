@@ -8,6 +8,7 @@ export type Player = {
   luster: number;
   energy: number;
   fame: number;
+  stage: number;
   last_energy_at: string;
 };
 
@@ -16,54 +17,122 @@ export const CLASSES: {
   label: string;
   tagline: string;
 }[] = [
-  { key: "diva", label: "DIVA", tagline: "Drama damage + fame crits" },
-  { key: "model", label: "MODEL", tagline: "Precision strikes + fashion armor" },
-  { key: "dancer", label: "DANCER", tagline: "Speed ticks + dodge procs" },
-  { key: "streamer", label: "STREAMER", tagline: "Idle hype + luster drip" },
+  { key: "diva", label: "DIVA", tagline: "Crit queen — burst damage" },
+  { key: "model", label: "MODEL", tagline: "Steady DPS — pierce armor" },
+  { key: "dancer", label: "DANCER", tagline: "Double-hit rhythm" },
+  { key: "streamer", label: "STREAMER", tagline: "Bonus loot on kills" },
 ];
 
 export const MAX_ENERGY = 100;
 export const ENERGY_REGEN_MS = 30_000;
 export const ENERGY_REGEN_AMOUNT = 5;
-export const IDLE_TICK_MS = 3_000;
+export const BATTLE_TICK_MS = 1_200;
+export const STAGES_PER_CHAPTER = 10;
+export const BOSS_EVERY = 5;
+export const MAX_AFK_TICKS = 180;
 
-export const ZONES = [
-  { minFame: 0, name: "Backstage Alley", enemy: "Dusty Stagehand" },
-  { minFame: 25, name: "Neon Runway", enemy: "Paparazzi Goblin" },
-  { minFame: 75, name: "Velvet VIP Lounge", enemy: "Critique Witch" },
-  { minFame: 150, name: "Gala Ascension", enemy: "Icon Slayer" },
-  { minFame: 300, name: "Eternal Spotlight", enemy: "The Algorithm" },
+export const CHAPTER_NAMES = [
+  "Backstage Alley",
+  "Neon Runway",
+  "Velvet VIP",
+  "Gala Ascension",
+  "Eternal Spotlight",
+  "Crystal Catwalk",
+  "Diamond Dynasty",
+  "Starfall Soirée",
 ] as const;
 
-export type Zone = (typeof ZONES)[number];
+const ENEMY_PREFIXES = [
+  "Rogue",
+  "Shadow",
+  "Bitter",
+  "Jealous",
+  "Petty",
+  "Savage",
+  "Cursed",
+  "Fallen",
+];
+
+const ENEMY_TYPES = [
+  "Stagehand",
+  "Critic",
+  "Paparazzo",
+  "Rival",
+  "Hater",
+  "Gatekeeper",
+  "Saboteur",
+  "Usurper",
+];
+
+const BOSS_TITLES = [
+  "Wardrobe Tyrant",
+  "Critique Witch",
+  "Paparazzi King",
+  "Icon Slayer",
+  "The Algorithm",
+  "Mirror Queen",
+  "Velvet Overlord",
+  "Spotlight Devourer",
+];
+
+export type StageInfo = {
+  global: number;
+  chapter: number;
+  stageInChapter: number;
+  chapterName: string;
+  isBoss: boolean;
+};
+
+export type Enemy = {
+  name: string;
+  maxHp: number;
+  power: number;
+  isBoss: boolean;
+};
+
+export type CombatState = {
+  enemy: Enemy;
+  hp: number;
+};
+
+export type BattleTickResult = {
+  player: Player;
+  combat: CombatState;
+  damage: number;
+  crit: boolean;
+  doubleHit: boolean;
+  killed: boolean;
+  stars: number;
+  log: string;
+};
 
 export const ACTIONS = {
   primp: {
-    label: "PRIMP",
+    label: "ENHANCE",
     energy: 15,
-    glamour: 2,
-    makeup: 8,
+    glamour: 3,
+    makeup: 6,
     fashion: 0,
     luster: 0,
     fame: 0,
   },
   shop: {
-    label: "SHOP",
+    label: "OUTFIT",
     energy: 10,
     glamour: 0,
     makeup: 0,
-    fashion: 12,
-    luster: -8,
+    fashion: 10,
+    luster: -10,
     fame: 0,
   },
   strut: {
-    label: "STRUT",
-    energy: 25,
+    label: "SPOTLIGHT",
+    energy: 20,
     glamour: 0,
     makeup: 0,
     fashion: 0,
-    luster: 15,
-    fame: 10,
+    luster: 12,
+    fame: 8,
   },
 } as const;
 
@@ -73,12 +142,160 @@ export function combatPower(player: Player): number {
   return player.glamour + player.makeup + player.fashion;
 }
 
-export function zoneForFame(fame: number): Zone {
-  let zone: Zone = ZONES[0];
-  for (const z of ZONES) {
-    if (fame >= z.minFame) zone = z;
+export function stageInfo(stage: number): StageInfo {
+  const global = Math.max(1, stage);
+  const chapter = Math.ceil(global / STAGES_PER_CHAPTER);
+  const stageInChapter = ((global - 1) % STAGES_PER_CHAPTER) + 1;
+  const chapterName =
+    CHAPTER_NAMES[Math.min(chapter - 1, CHAPTER_NAMES.length - 1)] ?? "Unknown";
+  const isBoss = stageInChapter % BOSS_EVERY === 0;
+  return { global, chapter, stageInChapter, chapterName, isBoss };
+}
+
+export function stageLabel(stage: number): string {
+  const info = stageInfo(stage);
+  return `Ch.${info.chapter}-${info.stageInChapter}`;
+}
+
+export function enemyForStage(stage: number): Enemy {
+  const info = stageInfo(stage);
+  const scale = info.global;
+  const bossMult = info.isBoss ? 4 : 1;
+
+  const name = info.isBoss
+    ? BOSS_TITLES[Math.min(info.chapter - 1, BOSS_TITLES.length - 1)]
+    : `${ENEMY_PREFIXES[scale % ENEMY_PREFIXES.length]} ${ENEMY_TYPES[scale % ENEMY_TYPES.length]}`;
+
+  return {
+    name,
+    maxHp: Math.floor((40 + scale * 22) * bossMult),
+    power: Math.floor((8 + scale * 6) * (info.isBoss ? 2 : 1)),
+    isBoss: info.isBoss,
+  };
+}
+
+export function newCombatState(stage: number): CombatState {
+  const enemy = enemyForStage(stage);
+  return { enemy, hp: enemy.maxHp };
+}
+
+function classCritChance(playerClass: PlayerClass): number {
+  if (playerClass === "diva") return 0.25;
+  if (playerClass === "model") return 0.1;
+  return 0.05;
+}
+
+function rollDamage(power: number, enemyPower: number, crit: boolean): number {
+  const ratio = power / Math.max(1, power + enemyPower);
+  const base = Math.max(1, Math.floor(power * ratio * 0.35));
+  const variance = 0.85 + Math.random() * 0.3;
+  return Math.max(1, Math.floor(base * variance * (crit ? 2 : 1)));
+}
+
+function killLoot(player: Player, enemy: Enemy, playerClass: PlayerClass) {
+  const power = combatPower(player);
+  const lusterBase = Math.max(2, Math.floor(power / 8) + Math.floor(enemy.maxHp / 40));
+  const fameBase = enemy.isBoss ? 5 : 1;
+  const lusterBonus = playerClass === "streamer" ? 3 : 0;
+  return {
+    luster: lusterBase + lusterBonus,
+    fame: fameBase + (enemy.isBoss ? Math.floor(player.stage / 10) : 0),
+  };
+}
+
+function starsForKill(power: number, enemy: Enemy): number {
+  const ratio = power / Math.max(1, enemy.power);
+  if (ratio >= 1.5) return 3;
+  if (ratio >= 1.0) return 2;
+  return 1;
+}
+
+export function battleTick(
+  player: Player,
+  combat: CombatState,
+  playerClass: PlayerClass
+): BattleTickResult {
+  const power = combatPower(player);
+  const crit = Math.random() < classCritChance(playerClass);
+  const doubleHit = playerClass === "dancer" && Math.random() < 0.3;
+
+  let damage = rollDamage(power, combat.enemy.power, crit);
+  if (playerClass === "model") {
+    damage = Math.floor(damage * 1.15);
   }
-  return zone;
+  if (doubleHit) {
+    damage += rollDamage(power, combat.enemy.power, false);
+  }
+
+  let hp = Math.max(0, combat.hp - damage);
+  const killed = hp <= 0;
+
+  let nextPlayer = player;
+  let nextCombat: CombatState = { ...combat, hp };
+  let stars = 0;
+  let log = "";
+
+  if (killed) {
+    const loot = killLoot(player, combat.enemy, playerClass);
+    stars = starsForKill(power, combat.enemy);
+    nextPlayer = {
+      ...player,
+      luster: player.luster + loot.luster,
+      fame: player.fame + loot.fame,
+      stage: player.stage + 1,
+    };
+    nextCombat = newCombatState(nextPlayer.stage);
+    const bossTag = combat.enemy.isBoss ? " BOSS DOWN!" : "";
+    log = `★${stars} ${stageLabel(player.stage)} cleared${bossTag} +✦${loot.luster} +★${loot.fame}`;
+  } else {
+    const verbs = crit ? ["CRIT", "SLAY", "DEVASTATE"] : ["hit", "strike", "slash"];
+    const verb = verbs[Math.floor(Math.random() * verbs.length)];
+    log = `${verb} ${combat.enemy.name} for ${damage}${doubleHit ? " x2" : ""} (${hp}/${combat.enemy.maxHp})`;
+  }
+
+  return {
+    player: nextPlayer,
+    combat: nextCombat,
+    damage,
+    crit,
+    doubleHit,
+    killed,
+    stars,
+    log,
+  };
+}
+
+export function catchUpBattles(
+  player: Player,
+  combat: CombatState,
+  playerClass: PlayerClass,
+  offlineMs: number
+): { player: Player; combat: CombatState; logs: string[]; totalDamage: number } {
+  const ticks = Math.min(MAX_AFK_TICKS, Math.floor(offlineMs / BATTLE_TICK_MS));
+  if (ticks <= 0) {
+    return { player, combat, logs: [], totalDamage: 0 };
+  }
+
+  let p = player;
+  let c = combat;
+  const logs: string[] = [];
+  let totalDamage = 0;
+
+  for (let i = 0; i < ticks; i++) {
+    const result = battleTick(p, c, playerClass);
+    p = result.player;
+    c = result.combat;
+    totalDamage += result.damage;
+    if (result.killed) {
+      logs.push(result.log);
+    }
+  }
+
+  if (logs.length > 0) {
+    logs.unshift(`AFK: ${ticks} auto-battles while away`);
+  }
+
+  return { player: p, combat: c, logs, totalDamage };
 }
 
 export function regenEnergy(player: Player, now = Date.now()): Player {
@@ -118,34 +335,10 @@ export function applyAction(player: Player, action: ActionKey): Player {
   };
 }
 
-export type IdleTickResult = {
-  player: Player;
-  log: string;
-};
-
-export function idleTick(player: Player, playerClass: PlayerClass): IdleTickResult {
-  const zone = zoneForFame(player.fame);
-  const power = combatPower(player);
-  const classBonus =
-    playerClass === "streamer" ? 2 : playerClass === "dancer" ? 1 : 0;
-
-  const lusterGain = Math.max(1, Math.floor(power / 12) + classBonus);
-  const fameGain = power >= zone.minFame + 20 ? 1 : 0;
-  const verbs = ["SLAYS", "STUNS", "OUTSHINES", "HUMBLES", "READS"];
-  const verb = verbs[Math.floor(Math.random() * verbs.length)];
-
-  const next: Player = {
-    ...player,
-    luster: player.luster + lusterGain,
-    fame: player.fame + fameGain,
-  };
-
-  return {
-    player: next,
-    log: `You ${verb} ${zone.enemy} for ✦${lusterGain}${fameGain ? ` and ★${fameGain}` : ""}!`,
-  };
+export function hpPercent(hp: number, maxHp: number): number {
+  return Math.min(100, Math.max(0, Math.round((hp / maxHp) * 100)));
 }
 
 export function statPercent(value: number): number {
-  return Math.min(100, Math.round(value));
+  return Math.min(100, Math.round(value % 100));
 }

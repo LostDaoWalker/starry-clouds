@@ -1,23 +1,34 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ClassSelect } from "./components/ClassSelect";
+import {
+  DamageFloaters,
+  VictoryFlash,
+  useDamageFloaters,
+  useVictoryFlash,
+} from "./components/DamageFloater";
 import { GameIcon } from "./components/GameIcon";
 import { SpriteActor } from "./components/SpriteActor";
+import { StageBanner } from "./components/StageBanner";
 import {
   ACTIONS,
   type ActionKey,
+  type CombatState,
   type Player,
   type PlayerClass,
   applyAction,
+  battleTick,
+  BATTLE_TICK_MS,
   canAct,
+  catchUpBattles,
   combatPower,
-  idleTick,
+  hpPercent,
+  newCombatState,
   regenEnergy,
+  stageInfo,
   statPercent,
-  zoneForFame,
-  IDLE_TICK_MS,
 } from "./game";
 import { loadPlayerClass, savePlayerClass } from "./lib/playerClass";
-import { ensurePlayer, savePlayer } from "./lib/supabase";
+import { ensurePlayer, lastActiveAt, savePlayer, touchActive } from "./lib/supabase";
 import "./App.css";
 
 type StatKey = "glamour" | "makeup" | "fashion";
@@ -33,7 +44,7 @@ const STATS: {
   { key: "fashion", label: "FASHION", color: "var(--gold)", icon: "fashion" },
 ];
 
-const MAX_LOG = 5;
+const MAX_LOG = 8;
 
 function StatBar({
   label,
@@ -67,15 +78,52 @@ function StatBar({
 
 export default function App() {
   const [player, setPlayer] = useState<Player | null>(null);
+  const [combat, setCombat] = useState<CombatState | null>(null);
   const [playerClass, setPlayerClass] = useState<PlayerClass | null>(loadPlayerClass);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<ActionKey | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [log, setLog] = useState<string[]>(["Welcome to the runway raid."]);
+  const [log, setLog] = useState<string[]>(["Auto-battle engaged. Clear stages for loot!"]);
+  const [lastStars, setLastStars] = useState(0);
+  const combatRef = useRef<CombatState | null>(null);
+  combatRef.current = combat;
+
+  const { floaters, spawn: spawnDamage } = useDamageFloaters();
+  const { flash: victoryFlash, trigger: triggerVictory } = useVictoryFlash();
+
+  const flashToast = useCallback((message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast(null), 1600);
+  }, []);
 
   useEffect(() => {
     ensurePlayer()
-      .then(setPlayer)
+      .then((p) => {
+        const initialCombat = newCombatState(p.stage);
+        const cls = loadPlayerClass();
+
+        if (cls) {
+          const offlineMs = Date.now() - lastActiveAt();
+          if (offlineMs >= BATTLE_TICK_MS * 2) {
+            const result = catchUpBattles(p, initialCombat, cls, offlineMs);
+            combatRef.current = result.combat;
+            setPlayer(result.player);
+            setCombat(result.combat);
+            if (result.logs.length > 0) {
+              setLog((lines) => [...result.logs, ...lines].slice(0, MAX_LOG));
+            }
+            void savePlayer(result.player).catch(() => undefined);
+          } else {
+            setPlayer(p);
+            setCombat(initialCombat);
+          }
+        } else {
+          setPlayer(p);
+          setCombat(initialCombat);
+        }
+
+        touchActive();
+      })
       .catch((e: Error) => setError(e.message));
   }, []);
 
@@ -88,30 +136,37 @@ export default function App() {
   }, [player?.id]);
 
   useEffect(() => {
-    if (!player || !playerClass) return;
+    if (!player || !playerClass || !combat) return;
 
     const id = window.setInterval(() => {
       setPlayer((current) => {
         if (!current) return current;
-        const { player: next, log: line } = idleTick(current, playerClass);
-        setLog((lines) => [line, ...lines].slice(0, MAX_LOG));
-        void savePlayer(next).catch(() => undefined);
-        return next;
+        const c = combatRef.current;
+        if (!c) return current;
+
+        const result = battleTick(current, c, playerClass);
+        combatRef.current = result.combat;
+        setCombat(result.combat);
+        spawnDamage(result.damage, result.crit);
+        setLog((lines) => [result.log, ...lines].slice(0, MAX_LOG));
+
+        if (result.killed) {
+          setLastStars(result.stars);
+          triggerVictory();
+          void savePlayer(result.player).catch(() => undefined);
+        }
+
+        return result.player;
       });
-    }, IDLE_TICK_MS);
+    }, BATTLE_TICK_MS);
 
     return () => window.clearInterval(id);
-  }, [player?.id, playerClass]);
-
-  const flash = useCallback((message: string) => {
-    setToast(message);
-    window.setTimeout(() => setToast(null), 1400);
-  }, []);
+  }, [player?.id, playerClass, spawnDamage, triggerVictory]);
 
   const pickClass = (next: PlayerClass) => {
     savePlayerClass(next);
     setPlayerClass(next);
-    setLog((lines) => [`${next.toUpperCase()} enters the arena!`, ...lines].slice(0, MAX_LOG));
+    setLog((lines) => [`${next.toUpperCase()} joins the campaign!`, ...lines].slice(0, MAX_LOG));
   };
 
   const act = useCallback(
@@ -119,8 +174,8 @@ export default function App() {
       if (!player || busy) return;
       const refreshed = regenEnergy(player);
       if (!canAct(refreshed, action)) {
-        flash(
-          action === "shop" && refreshed.luster < 8
+        flashToast(
+          action === "shop" && refreshed.luster < 10
             ? "Need more luster"
             : "Not enough energy"
         );
@@ -131,21 +186,21 @@ export default function App() {
       const next = applyAction(refreshed, action);
       setPlayer(next);
       setLog((lines) =>
-        [`${ACTIONS[action].label} — power rises!`, ...lines].slice(0, MAX_LOG)
+        [`${ACTIONS[action].label} — power +${ACTIONS[action].glamour + ACTIONS[action].makeup + ACTIONS[action].fashion}!`, ...lines].slice(0, MAX_LOG)
       );
 
       try {
         const saved = await savePlayer(next);
         setPlayer(saved);
-        flash(`${ACTIONS[action].label}!`);
+        flashToast(`${ACTIONS[action].label}!`);
       } catch (e) {
         setPlayer(refreshed);
-        flash(e instanceof Error ? e.message : "Save failed");
+        flashToast(e instanceof Error ? e.message : "Save failed");
       } finally {
         setBusy(null);
       }
     },
-    [player, busy, flash]
+    [player, busy, flashToast]
   );
 
   if (error) {
@@ -158,7 +213,7 @@ export default function App() {
     );
   }
 
-  if (!player) {
+  if (!player || !combat) {
     return (
       <main className="pbbg loading-screen">
         <p className="loading-text">PRIMPING…</p>
@@ -167,16 +222,17 @@ export default function App() {
   }
 
   const live = regenEnergy(player);
-  const zone = zoneForFame(live.fame);
+  const info = stageInfo(live.stage);
   const power = combatPower(live);
   const classLabel = playerClass?.toUpperCase() ?? "???";
+  const enemyHpPct = hpPercent(combat.hp, combat.enemy.maxHp);
 
   return (
     <main className="pbbg">
       <header className="top-bar panel">
         <div className="brand">
           <h1>GLAMOUR</h1>
-          <span className="zone">{zone.name}</span>
+          <span className="zone">{info.chapterName}</span>
         </div>
         <div className="currencies">
           <span className="currency luster">
@@ -194,32 +250,50 @@ export default function App() {
         </div>
       </header>
 
+      <StageBanner stage={live.stage} autoBattle={!!playerClass} />
+
       <section className="arena panel">
+        <VictoryFlash active={victoryFlash} />
+        <DamageFloaters floaters={floaters} />
+
         <div className="arena-side arena-player">
           <p className="arena-label">{classLabel}</p>
           <p className="arena-power">
             <GameIcon name="power" size="sm" />
-            PWR {power}
+            CP {power}
           </p>
+          <div className="hp-bar hp-player">
+            <div className="hp-fill hp-fill-player" style={{ width: "100%" }} />
+          </div>
           {playerClass && <SpriteActor playerClass={playerClass} />}
         </div>
 
-        <div className="arena-vs">VS</div>
+        <div className="arena-center">
+          <span className="arena-vs">VS</span>
+          {lastStars > 0 && (
+            <span className="star-rating" aria-label={`${lastStars} stars`}>
+              {"★".repeat(lastStars)}
+              {"☆".repeat(3 - lastStars)}
+            </span>
+          )}
+        </div>
 
-        <div className="arena-side arena-enemy">
-          <p className="arena-label">{zone.enemy}</p>
-          <div className="enemy-silhouette" aria-hidden />
-          <div className="enemy-hp">
-            <div
-              className="enemy-hp-fill"
-              style={{ width: `${Math.max(8, 100 - statPercent(live.fame % 100))}%` }}
-            />
+        <div className={`arena-side arena-enemy ${combat.enemy.isBoss ? "arena-boss" : ""}`}>
+          <p className="arena-label">{combat.enemy.name}</p>
+          <p className="arena-enemy-power">PWR {combat.enemy.power}</p>
+          <div className="hp-bar hp-enemy">
+            <div className="hp-fill hp-fill-enemy" style={{ width: `${enemyHpPct}%` }} />
+            <span className="hp-text">
+              {combat.hp}/{combat.enemy.maxHp}
+            </span>
           </div>
+          <div className={`enemy-silhouette ${combat.enemy.isBoss ? "enemy-boss" : ""}`} aria-hidden />
         </div>
       </section>
 
       <section className="mid-row">
         <div className="stats panel">
+          <p className="panel-subtitle">HERO STATS</p>
           {STATS.map((s) => (
             <StatBar
               key={s.key}
@@ -232,10 +306,12 @@ export default function App() {
         </div>
 
         <div className="combat-log panel">
-          <p className="log-title">COMBAT LOG</p>
+          <p className="log-title">BATTLE LOG</p>
           <ul>
             {log.map((line, i) => (
-              <li key={`${i}-${line}`}>{line}</li>
+              <li key={`${i}-${line}`} className={line.includes("cleared") ? "log-victory" : ""}>
+                {line}
+              </li>
             ))}
           </ul>
         </div>
@@ -256,7 +332,9 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <p className="idle-hint">Auto-raid every {IDLE_TICK_MS / 1000}s · one screen · no scroll</p>
+        <p className="idle-hint">
+          Auto-battle every {BATTLE_TICK_MS / 1000}s · Boss every {5} stages · AFK progress saved
+        </p>
       </footer>
 
       {!playerClass && <ClassSelect onPick={pickClass} />}
