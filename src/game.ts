@@ -93,6 +93,9 @@ export type Enemy = {
 export type CombatState = {
   enemy: Enemy;
   hp: number;
+  wave: number;
+  totalWaves: number;
+  stage: number;
 };
 
 export type BattleTickResult = {
@@ -102,6 +105,8 @@ export type BattleTickResult = {
   crit: boolean;
   doubleHit: boolean;
   killed: boolean;
+  waveCleared: boolean;
+  stageCleared: boolean;
   stars: number;
   log: string;
 };
@@ -174,9 +179,34 @@ export function enemyForStage(stage: number): Enemy {
   };
 }
 
+export function wavesForStage(stage: number): number {
+  const info = stageInfo(stage);
+  if (info.isBoss) return 3;
+  if (info.global <= 8) return 2;
+  return 3;
+}
+
+export function enemyForWave(stage: number, wave: number, totalWaves: number): Enemy {
+  const base = enemyForStage(stage);
+  const isFinal = wave === totalWaves;
+
+  if (!isFinal) {
+    const scale = 0.4 + wave * 0.12;
+    return {
+      name: `Minion ${wave}`,
+      maxHp: Math.max(15, Math.floor((base.maxHp * scale) / totalWaves)),
+      power: Math.max(4, Math.floor(base.power * scale * 0.65)),
+      isBoss: false,
+    };
+  }
+
+  return base;
+}
+
 export function newCombatState(stage: number): CombatState {
-  const enemy = enemyForStage(stage);
-  return { enemy, hp: enemy.maxHp };
+  const totalWaves = wavesForStage(stage);
+  const enemy = enemyForWave(stage, 1, totalWaves);
+  return { enemy, hp: enemy.maxHp, wave: 1, totalWaves, stage };
 }
 
 function classCritChance(playerClass: PlayerClass): number {
@@ -233,20 +263,38 @@ export function battleTick(
   let nextPlayer = player;
   let nextCombat: CombatState = { ...combat, hp };
   let stars = 0;
+  let waveCleared = false;
+  let stageCleared = false;
   let log = "";
 
   if (killed) {
-    const loot = killLoot(player, combat.enemy, playerClass);
-    stars = starsForKill(power, combat.enemy);
-    nextPlayer = {
-      ...player,
-      luster: player.luster + loot.luster,
-      fame: player.fame + loot.fame,
-      stage: player.stage + 1,
-    };
-    nextCombat = newCombatState(nextPlayer.stage);
-    const bossTag = combat.enemy.isBoss ? " BOSS DOWN!" : "";
-    log = `★${stars} ${stageLabel(player.stage)} cleared${bossTag} +✦${loot.luster} +★${loot.fame}`;
+    if (combat.wave < combat.totalWaves) {
+      const nextWave = combat.wave + 1;
+      const enemy = enemyForWave(combat.stage, nextWave, combat.totalWaves);
+      nextCombat = {
+        enemy,
+        hp: enemy.maxHp,
+        wave: nextWave,
+        totalWaves: combat.totalWaves,
+        stage: combat.stage,
+      };
+      nextPlayer = { ...player, luster: player.luster + 1 };
+      waveCleared = true;
+      log = `Wave ${combat.wave} cleared — ${enemy.name} enters!`;
+    } else {
+      const loot = killLoot(player, combat.enemy, playerClass);
+      stars = starsForKill(power, combat.enemy);
+      nextPlayer = {
+        ...player,
+        luster: player.luster + loot.luster,
+        fame: player.fame + loot.fame,
+        stage: player.stage + 1,
+      };
+      nextCombat = newCombatState(nextPlayer.stage);
+      stageCleared = true;
+      const bossTag = combat.enemy.isBoss ? " BOSS DOWN!" : "";
+      log = `★${stars} ${stageLabel(player.stage)} cleared${bossTag} +✦${loot.luster} +★${loot.fame}`;
+    }
   } else {
     const verbs = crit ? ["CRIT", "SLAY", "DEVASTATE"] : ["hit", "strike", "slash"];
     const verb = verbs[Math.floor(Math.random() * verbs.length)];
@@ -260,6 +308,8 @@ export function battleTick(
     crit,
     doubleHit,
     killed,
+    waveCleared,
+    stageCleared,
     stars,
     log,
   };

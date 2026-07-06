@@ -31,4 +31,5 @@ body,
 body {
   overflow: hidden;
   touch-action: manipulation;
+  background: #030208;
 }
