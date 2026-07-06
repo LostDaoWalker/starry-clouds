@@ -1,3 +1,28 @@
-html {
-  scroll-behavior: smooth;
+:root {
+  --black: #0a0a0a;
+  --pink: #ff2d8a;
+  --cyan: #00e5ff;
+  --gold: #ffd000;
+  --violet: #7b2fff;
+  --white: #f5f0eb;
+  font-family: "DM Sans", system-ui, sans-serif;
+  color: var(--white);
+  background: var(--black);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+body {
+  overflow: hidden;
 }
