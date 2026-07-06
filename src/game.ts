@@ -1,3 +1,5 @@
+export type PlayerClass = "diva" | "model" | "dancer" | "streamer";
+
 export type Player = {
   id: string;
   glamour: number;
@@ -9,9 +11,31 @@ export type Player = {
   last_energy_at: string;
 };
 
+export const CLASSES: {
+  key: PlayerClass;
+  label: string;
+  tagline: string;
+}[] = [
+  { key: "diva", label: "DIVA", tagline: "Drama damage + fame crits" },
+  { key: "model", label: "MODEL", tagline: "Precision strikes + fashion armor" },
+  { key: "dancer", label: "DANCER", tagline: "Speed ticks + dodge procs" },
+  { key: "streamer", label: "STREAMER", tagline: "Idle hype + luster drip" },
+];
+
 export const MAX_ENERGY = 100;
 export const ENERGY_REGEN_MS = 30_000;
 export const ENERGY_REGEN_AMOUNT = 5;
+export const IDLE_TICK_MS = 3_000;
+
+export const ZONES = [
+  { minFame: 0, name: "Backstage Alley", enemy: "Dusty Stagehand" },
+  { minFame: 25, name: "Neon Runway", enemy: "Paparazzi Goblin" },
+  { minFame: 75, name: "Velvet VIP Lounge", enemy: "Critique Witch" },
+  { minFame: 150, name: "Gala Ascension", enemy: "Icon Slayer" },
+  { minFame: 300, name: "Eternal Spotlight", enemy: "The Algorithm" },
+] as const;
+
+export type Zone = (typeof ZONES)[number];
 
 export const ACTIONS = {
   primp: {
@@ -44,6 +68,18 @@ export const ACTIONS = {
 } as const;
 
 export type ActionKey = keyof typeof ACTIONS;
+
+export function combatPower(player: Player): number {
+  return player.glamour + player.makeup + player.fashion;
+}
+
+export function zoneForFame(fame: number): Zone {
+  let zone: Zone = ZONES[0];
+  for (const z of ZONES) {
+    if (fame >= z.minFame) zone = z;
+  }
+  return zone;
+}
 
 export function regenEnergy(player: Player, now = Date.now()): Player {
   const elapsed = now - new Date(player.last_energy_at).getTime();
@@ -82,6 +118,34 @@ export function applyAction(player: Player, action: ActionKey): Player {
   };
 }
 
+export type IdleTickResult = {
+  player: Player;
+  log: string;
+};
+
+export function idleTick(player: Player, playerClass: PlayerClass): IdleTickResult {
+  const zone = zoneForFame(player.fame);
+  const power = combatPower(player);
+  const classBonus =
+    playerClass === "streamer" ? 2 : playerClass === "dancer" ? 1 : 0;
+
+  const lusterGain = Math.max(1, Math.floor(power / 12) + classBonus);
+  const fameGain = power >= zone.minFame + 20 ? 1 : 0;
+  const verbs = ["SLAYS", "STUNS", "OUTSHINES", "HUMBLES", "READS"];
+  const verb = verbs[Math.floor(Math.random() * verbs.length)];
+
+  const next: Player = {
+    ...player,
+    luster: player.luster + lusterGain,
+    fame: player.fame + fameGain,
+  };
+
+  return {
+    player: next,
+    log: `You ${verb} ${zone.enemy} for ✦${lusterGain}${fameGain ? ` and ★${fameGain}` : ""}!`,
+  };
+}
+
 export function statPercent(value: number): number {
-  return Math.min(100, Math.round((value / 100) * 100));
+  return Math.min(100, Math.round(value));
 }
