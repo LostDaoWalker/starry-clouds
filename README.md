@@ -35,13 +35,31 @@ npm install
 npm run dev
 ```
 
-### 3. Railway
+## Hosting (Fly.io)
 
-1. Connect this repo to [Railway](https://railway.app)
-2. Set environment variables:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-3. Railway reads `railway.toml` — builds with `npm run build`, starts with `npm start`
+The app deploys to [Fly.io](https://fly.io) as a static SPA. Game data lives in Supabase (no Fly Postgres).
+
+**Live URL (after deploy):** https://starry-clouds.fly.dev
+
+### One-time setup
+
+1. Create a Fly.io access token: [fly.io/user/personal_access_tokens](https://fly.io/user/personal_access_tokens)
+2. Add it to GitHub repo secrets as `FLY_API_TOKEN`:
+   - Repo → Settings → Secrets and variables → Actions → New repository secret
+3. Push to `master` or run the **Deploy to Fly.io** workflow manually
+
+### Manual deploy
+
+```bash
+export FLY_API_TOKEN=your_token
+./scripts/fly-deploy.sh
+```
+
+### Requirements
+
+- Supabase anonymous sign-ins enabled (Authentication → Providers → Anonymous)
+- `fly.toml` embeds the public Supabase URL and anon key at build time
+
 
 ## Environment
 
