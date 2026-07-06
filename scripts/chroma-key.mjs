@@ -2,28 +2,32 @@
 /**
  * Chroma-key pipeline for GLAMOUR walk-cycle sprites.
  *
+ * Expects individual frame PNGs per class:
+ *   public/sprites/raw/{class}/frame-00.png … frame-15.png
+ *
  * 1. Remove solid #00FF00 green screen backgrounds
- * 2. Split horizontal sprite sheets into per-frame PNGs
- * 3. Emit a manifest JSON per class
+ * 2. Trim transparent padding per frame
+ * 3. Normalize all frames to a shared canvas
+ * 4. Emit manifest JSON per class
  *
  * Usage:
  *   npm run sprites:process
- *   node scripts/chroma-key.mjs --input public/sprites/raw --output public/sprites/walk --frames 16
+ *   node scripts/chroma-key.mjs --input public/sprites/raw --output public/sprites/walk
  */
 
-import { mkdir, readdir, writeFile, unlink } from "node:fs/promises";
-import { basename, join } from "node:path";
+import { mkdir, readdir, writeFile, unlink, stat } from "node:fs/promises";
+import { join } from "node:path";
 import sharp from "sharp";
 
 const KEY = { r: 0, g: 255, b: 0 };
 const DEFAULT_TOLERANCE = 90;
 const DEFAULT_SPILL = 0.35;
+const FRAME_RE = /^frame-(\d+)\.png$/i;
 
 function parseArgs(argv) {
   const opts = {
     input: "public/sprites/raw",
     output: "public/sprites/walk",
-    frames: 16,
     tolerance: DEFAULT_TOLERANCE,
     spill: DEFAULT_SPILL,
   };
@@ -32,18 +36,21 @@ function parseArgs(argv) {
     const arg = argv[i];
     if (arg === "--input") opts.input = argv[++i];
     else if (arg === "--output") opts.output = argv[++i];
-    else if (arg === "--frames") opts.frames = Number(argv[++i]);
     else if (arg === "--tolerance") opts.tolerance = Number(argv[++i]);
     else if (arg === "--spill") opts.spill = Number(argv[++i]);
     else if (arg === "--help") {
       console.log(`Usage: node scripts/chroma-key.mjs [options]
 
 Options:
-  --input <dir>       Source chroma-key sprite sheets (default: public/sprites/raw)
+  --input <dir>       Source frames root (default: public/sprites/raw)
   --output <dir>      Processed transparent frames (default: public/sprites/walk)
-  --frames <n>        Frames per horizontal sheet (default: 16)
   --tolerance <0-255> Green distance cutoff (default: ${DEFAULT_TOLERANCE})
   --spill <0-1>       Desaturate green spill on edges (default: ${DEFAULT_SPILL})
+
+Input layout:
+  {input}/{class}/frame-00.png
+  {input}/{class}/frame-01.png
+  ...
 `);
       process.exit(0);
     }
@@ -84,23 +91,6 @@ function applyChromaKey(rgba, width, height, tolerance, spill) {
   }
 }
 
-function extractFrame(rgba, sheetWidth, sheetHeight, left, frameWidth) {
-  const frame = Buffer.alloc(frameWidth * sheetHeight * 4);
-
-  for (let y = 0; y < sheetHeight; y++) {
-    for (let x = 0; x < frameWidth; x++) {
-      const src = ((y * sheetWidth) + (left + x)) * 4;
-      const dst = ((y * frameWidth) + x) * 4;
-      frame[dst] = rgba[src];
-      frame[dst + 1] = rgba[src + 1];
-      frame[dst + 2] = rgba[src + 2];
-      frame[dst + 3] = rgba[src + 3];
-    }
-  }
-
-  return frame;
-}
-
 async function normalizeFrames(outDir, frames) {
   const maxWidth = Math.max(...frames.map((f) => f.width));
   const maxHeight = Math.max(...frames.map((f) => f.height));
@@ -126,19 +116,7 @@ async function normalizeFrames(outDir, frames) {
   return { width: maxWidth, height: maxHeight };
 }
 
-async function processSheet(filePath, opts) {
-  const className = basename(filePath)
-    .replace(/-walk(-cycle)?/i, "")
-    .replace(/\.[^.]+$/, "");
-  const outDir = join(opts.output, className);
-  await mkdir(outDir, { recursive: true });
-
-  for (const entry of await readdir(outDir)) {
-    if (/^frame-\d+\.png$/i.test(entry)) {
-      await unlink(join(outDir, entry));
-    }
-  }
-
+async function processFrame(filePath, outPath, opts) {
   const { data, info } = await sharp(filePath)
     .ensureAlpha()
     .raw()
@@ -147,42 +125,68 @@ async function processSheet(filePath, opts) {
   const rgba = Buffer.from(data);
   applyChromaKey(rgba, info.width, info.height, opts.tolerance, opts.spill);
 
-  const frameWidth = Math.floor(info.width / opts.frames);
-  const frames = [];
+  await sharp(rgba, {
+    raw: { width: info.width, height: info.height, channels: 4 },
+  })
+    .trim({ threshold: 1 })
+    .png()
+    .toFile(outPath);
 
-  for (let i = 0; i < opts.frames; i++) {
-    const left = i * frameWidth;
-    const framePath = join(outDir, `frame-${String(i).padStart(2, "0")}.png`);
-    const frame = extractFrame(rgba, info.width, info.height, left, frameWidth);
+  const trimmed = await sharp(outPath).metadata();
+  return { width: trimmed.width, height: trimmed.height };
+}
 
-    await sharp(frame, {
-      raw: { width: frameWidth, height: info.height, channels: 4 },
-    })
-      .trim({ threshold: 1 })
-      .png()
-      .toFile(framePath);
+async function processClass(className, classDir, opts) {
+  const outDir = join(opts.output, className);
+  await mkdir(outDir, { recursive: true });
 
-    const trimmed = await sharp(framePath).metadata();
-    frames.push({
-      file: `frame-${String(i).padStart(2, "0")}.png`,
-      width: trimmed.width,
-      height: trimmed.height,
+  for (const entry of await readdir(outDir)) {
+    if (FRAME_RE.test(entry)) {
+      await unlink(join(outDir, entry));
+    }
+  }
+
+  const entries = (await readdir(classDir))
+    .filter((f) => FRAME_RE.test(f))
+    .sort((a, b) => {
+      const ai = Number(a.match(FRAME_RE)[1]);
+      const bi = Number(b.match(FRAME_RE)[1]);
+      return ai - bi;
     });
+
+  if (entries.length === 0) {
+    throw new Error(`No frames found in ${classDir}`);
+  }
+
+  const frames = [];
+  for (const entry of entries) {
+    const outFile = entry;
+    const outPath = join(outDir, outFile);
+    const { width, height } = await processFrame(join(classDir, entry), outPath, opts);
+    frames.push({ file: outFile, width, height });
   }
 
   const canvas = await normalizeFrames(outDir, frames);
 
   const manifest = {
     class: className,
-    frameCount: opts.frames,
-    source: basename(filePath),
+    frameCount: frames.length,
+    source: `${className}/`,
     canvas,
     frames,
   };
 
   await writeFile(join(outDir, "manifest.json"), JSON.stringify(manifest, null, 2));
-  console.log(`✓ ${className}: ${opts.frames} frames → ${outDir}`);
+  console.log(`✓ ${className}: ${frames.length} frames → ${outDir}`);
   return manifest;
+}
+
+async function isDirectory(path) {
+  try {
+    return (await stat(path)).isDirectory();
+  } catch {
+    return false;
+  }
 }
 
 async function main() {
@@ -191,18 +195,26 @@ async function main() {
   await mkdir(opts.output, { recursive: true });
 
   const entries = await readdir(opts.input);
-  const sheets = entries
-    .filter((f) => /\.(png|jpe?g|webp)$/i.test(f))
-    .map((f) => join(opts.input, f));
+  const classDirs = [];
 
-  if (sheets.length === 0) {
-    console.error(`No sprite sheets found in ${opts.input}`);
+  for (const entry of entries) {
+    const fullPath = join(opts.input, entry);
+    if (await isDirectory(fullPath)) {
+      classDirs.push({ name: entry, path: fullPath });
+    }
+  }
+
+  if (classDirs.length === 0) {
+    console.error(`No class frame directories found in ${opts.input}`);
+    console.error(`Expected: ${opts.input}/{class}/frame-00.png`);
     process.exit(1);
   }
 
+  classDirs.sort((a, b) => a.name.localeCompare(b.name));
+
   const manifests = [];
-  for (const sheet of sheets) {
-    manifests.push(await processSheet(sheet, opts));
+  for (const { name, path } of classDirs) {
+    manifests.push(await processClass(name, path, opts));
   }
 
   await writeFile(
@@ -210,7 +222,7 @@ async function main() {
     JSON.stringify({ classes: manifests }, null, 2)
   );
 
-  console.log(`\nProcessed ${manifests.length} sheet(s) → ${opts.output}`);
+  console.log(`\nProcessed ${manifests.length} class(es) → ${opts.output}`);
 }
 
 main().catch((err) => {
