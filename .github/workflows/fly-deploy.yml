@@ -18,21 +18,6 @@ jobs:
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - name: Ensure Fly Postgres
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-        run: |
-          if ! flyctl postgres list 2>/dev/null | grep -q glamour-db; then
-            flyctl postgres create \
-              --name glamour-db \
-              --region iad \
-              --initial-cluster-size 1 \
-              --vm-size shared-cpu-1x \
-              --volume-size 1 \
-              --yes
-          fi
-          flyctl postgres attach glamour-db --app starry-clouds --yes || true
-
       - name: Deploy app
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

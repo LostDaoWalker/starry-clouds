@@ -105,7 +105,7 @@ export default function App() {
       <main className="screen error-screen">
         <p className="error-title">GLAMOUR</p>
         <p className="error-msg">{error}</p>
-        <p className="error-hint">Ensure DATABASE_URL is set and the database is reachable</p>
+        <p className="error-hint">Check Supabase env vars and that anonymous sign-ins are enabled</p>
       </main>
     );
   }
