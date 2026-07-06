@@ -26,7 +26,7 @@ export function GearPanel({ player, onUpgrade, onClose, busy }: GearPanelProps) 
             ✕
           </button>
         </header>
-        <p className="meta-hint">Shakes & Fidget gear — each level adds +2 BR.</p>
+        <p className="meta-hint">Each upgrade adds passive BR.</p>
 
         <ul className="gear-list">
           {GEAR_SLOTS.map((slot: (typeof GEAR_SLOTS)[number]) => {

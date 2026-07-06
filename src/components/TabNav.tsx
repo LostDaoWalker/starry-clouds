@@ -9,21 +9,32 @@ const TABS: { key: GameTab; label: string }[] = [
 type TabNavProps = {
   active: GameTab;
   onChange: (tab: GameTab) => void;
+  questBadge?: number;
+  arenaFights?: number;
 };
 
-export function TabNav({ active, onChange }: TabNavProps) {
+export function TabNav({ active, onChange, questBadge = 0, arenaFights = 0 }: TabNavProps) {
   return (
     <nav className="tab-nav" aria-label="Game sections">
-      {TABS.map((tab) => (
-        <button
-          key={tab.key}
-          type="button"
-          className={`tab-btn ${active === tab.key ? "tab-active" : ""}`}
-          onClick={() => onChange(tab.key)}
-        >
-          {tab.label}
-        </button>
-      ))}
+      {TABS.map((tab) => {
+        const badge =
+          tab.key === "quest" && questBadge > 0
+            ? questBadge
+            : tab.key === "raid" && arenaFights > 0
+              ? arenaFights
+              : 0;
+        return (
+          <button
+            key={tab.key}
+            type="button"
+            className={`tab-btn ${active === tab.key ? "tab-active" : ""}`}
+            onClick={() => onChange(tab.key)}
+          >
+            {tab.label}
+            {badge > 0 && <span className="tab-badge">{badge}</span>}
+          </button>
+        );
+      })}
     </nav>
   );
 }

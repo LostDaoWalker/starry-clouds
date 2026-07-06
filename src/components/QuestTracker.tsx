@@ -1,5 +1,5 @@
 import { GameIcon } from "./GameIcon";
-import { chapterLore, stageInfo, stageLabel } from "../game";
+import { chapterLore, requiredBr, stageInfo, stageLabel } from "../game";
 
 type QuestTrackerProps = {
   stage: number;
@@ -11,22 +11,26 @@ type QuestTrackerProps = {
 export function QuestTracker({ stage, power, wave, totalWaves }: QuestTrackerProps) {
   const info = stageInfo(stage);
   const lore = chapterLore(info.chapter);
+  const need = requiredBr(stage);
 
   return (
     <aside className="quest-tracker panel panel-parchment">
       <p className="quest-title">
         <GameIcon name="quest" size="sm" />
-        ACTIVE QUEST
+        CAMPAIGN
       </p>
       <p className="quest-objective">
-        Defeat foes at <strong>{stageLabel(stage)}</strong>
+        Clear <strong>{stageLabel(stage)}</strong>
       </p>
       <p className="quest-lore">{lore}</p>
       <p className="quest-detail">
         Wave {wave}/{totalWaves}
-        {info.isBoss ? " · RAID BOSS" : ""}
+        {info.isBoss ? " · BOSS" : ""}
       </p>
-      <p className="quest-br">Required BR ~{Math.max(1, info.global * 8)} · Yours {power}</p>
+      <p className="quest-br">
+        BR {power}/{need}
+        {power >= need ? " · Ready" : " · Train up"}
+      </p>
     </aside>
   );
 }

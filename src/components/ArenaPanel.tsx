@@ -1,10 +1,5 @@
 import { GameIcon } from "./GameIcon";
-import {
-  ARENA_DAILY_FIGHTS,
-  canArenaFight,
-  combatPower,
-  type Player,
-} from "../game";
+import { ARENA_DAILY_FIGHTS, br, canArenaFight, type Player } from "../game";
 
 type ArenaPanelProps = {
   player: Player;
@@ -13,7 +8,7 @@ type ArenaPanelProps = {
 };
 
 export function ArenaPanel({ player, onFight, busy }: ArenaPanelProps) {
-  const power = combatPower(player);
+  const power = br(player);
   const fightsLeft = player.extras.arenaFightsLeft;
   const canFight = canArenaFight(player) && !busy;
 
@@ -23,7 +18,6 @@ export function ArenaPanel({ player, onFight, busy }: ArenaPanelProps) {
       <header className="meta-panel-header">
         <GameIcon name="fame" size="sm" />
         <h2>ARENA</h2>
-        <span className="meta-sub">Shakes · MyBrute · Kano</span>
       </header>
 
       <div className="arena-stats">
@@ -46,16 +40,9 @@ export function ArenaPanel({ player, onFight, busy }: ArenaPanelProps) {
         </div>
       </div>
 
-      <p className="meta-hint">
-        Daily PvP brawls. Win for luster + fame. Losers still earn consolation honor.
-      </p>
+      <p className="meta-hint">Daily ranked brawls. Wins earn luster and fame.</p>
 
-      <button
-        type="button"
-        className="meta-action-btn"
-        disabled={!canFight}
-        onClick={onFight}
-      >
+      <button type="button" className="meta-action-btn" disabled={!canFight} onClick={onFight}>
         {fightsLeft > 0 ? "FIGHT RIVAL" : "RESETS TOMORROW"}
       </button>
     </section>

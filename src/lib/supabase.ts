@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { normalizeExtras, refreshDailies, type Player } from "../game";
+import { normalizeExtras, sanitizePlayer, type Player } from "../game";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -31,23 +31,22 @@ export function touchActive(): void {
   localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
 }
 
-function normalisePlayer(raw: Record<string, unknown>): Player {
-  const player: Player = {
+function rowToPlayer(raw: Record<string, unknown>): Player {
+  return sanitizePlayer({
     id: raw.id as string,
-    glamour: raw.glamour as number,
-    makeup: raw.makeup as number,
-    fashion: raw.fashion as number,
-    luster: raw.luster as number,
-    energy: raw.energy as number,
-    fame: raw.fame as number,
-    stage: (raw.stage as number) ?? 1,
+    glamour: Number(raw.glamour ?? 0),
+    makeup: Number(raw.makeup ?? 0),
+    fashion: Number(raw.fashion ?? 0),
+    luster: Number(raw.luster ?? 0),
+    energy: Number(raw.energy ?? 100),
+    fame: Number(raw.fame ?? 0),
+    stage: Number(raw.stage ?? 1),
     last_energy_at:
       raw.last_energy_at instanceof Date
         ? (raw.last_energy_at as Date).toISOString()
-        : (raw.last_energy_at as string),
+        : String(raw.last_energy_at ?? new Date().toISOString()),
     extras: normalizeExtras(raw.extras),
-  };
-  return refreshDailies(player);
+  });
 }
 
 export async function ensurePlayer(): Promise<Player> {
@@ -56,24 +55,35 @@ export async function ensurePlayer(): Promise<Player> {
   });
 
   if (error) throw error;
-  return normalisePlayer(data as Record<string, unknown>);
+
+  const player = rowToPlayer(data as Record<string, unknown>);
+
+  // Persist if daily reset or sanitization changed stored state
+  const stored = data as Record<string, unknown>;
+  const storedReset = (stored.extras as { dailyReset?: string } | null)?.dailyReset;
+  if (storedReset !== player.extras.dailyReset) {
+    return savePlayer(player);
+  }
+
+  return player;
 }
 
 export async function savePlayer(player: Player): Promise<Player> {
   touchActive();
+  const clean = sanitizePlayer(player);
   const { data, error } = await supabase.rpc("save_player_row", {
-    p_id: player.id,
-    p_glamour: player.glamour,
-    p_makeup: player.makeup,
-    p_fashion: player.fashion,
-    p_luster: player.luster,
-    p_energy: player.energy,
-    p_fame: player.fame,
-    p_last_energy_at: player.last_energy_at,
-    p_stage: player.stage,
-    p_extras: player.extras,
+    p_id: clean.id,
+    p_glamour: clean.glamour,
+    p_makeup: clean.makeup,
+    p_fashion: clean.fashion,
+    p_luster: clean.luster,
+    p_energy: clean.energy,
+    p_fame: clean.fame,
+    p_last_energy_at: clean.last_energy_at,
+    p_stage: clean.stage,
+    p_extras: clean.extras,
   });
 
   if (error) throw error;
-  return normalisePlayer(data as Record<string, unknown>);
+  return rowToPlayer(data as Record<string, unknown>);
 }

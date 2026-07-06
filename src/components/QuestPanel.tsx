@@ -5,13 +5,14 @@ import {
   canBlitz,
   canClaimDaily,
   stageLabel,
+  type DailyKey,
   type Player,
 } from "../game";
 
 type QuestPanelProps = {
   player: Player;
   blitzStages: number[];
-  onClaim: (key: (typeof DAILY_QUESTS)[number]["key"]) => void;
+  onClaim: (key: DailyKey) => void;
   onBlitz: (stage: number) => void;
   busy: boolean;
 };
@@ -70,12 +71,11 @@ export function QuestPanel({ player, blitzStages, onClaim, onBlitz, busy }: Ques
 
       <header className="meta-panel-header quest-header blitz-header">
         <GameIcon name="wave" size="sm" />
-        <h2>BLITZ FARM</h2>
-        <span className="meta-sub">LoA · Ninja Saga</span>
+        <h2>BLITZ</h2>
       </header>
 
       {blitzStages.length === 0 ? (
-        <p className="meta-hint">3★ clear stages to unlock blitz farming.</p>
+        <p className="meta-hint">Earn 3★ on cleared stages to unlock blitz farming.</p>
       ) : (
         <ul className="blitz-list">
           {blitzStages.map((stage) => (
