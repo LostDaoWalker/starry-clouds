@@ -1,16 +1,88 @@
-export type PlayerClass = "diva" | "model" | "dancer" | "streamer";
+import {
+  BATTLE_TICK_MS,
+  ENERGY_REGEN_AMOUNT,
+  ENERGY_REGEN_MS,
+  MAX_AFK_TICKS,
+  MAX_ENERGY,
+} from "./game/constants";
+import { br, onCampaignStageClear, trackEnergySpent } from "./game/meta";
+import { stageInfo, stageLabel } from "./game/progression";
+import type {
+  BattleTickResult,
+  CombatState,
+  Enemy,
+  EnemySprite,
+  Player,
+  PlayerClass,
+} from "./game/types";
 
-export type Player = {
-  id: string;
-  glamour: number;
-  makeup: number;
-  fashion: number;
-  luster: number;
-  energy: number;
-  fame: number;
-  stage: number;
-  last_energy_at: string;
-};
+export type {
+  BattleTickResult,
+  CombatState,
+  DailyKey,
+  Enemy,
+  EnemySprite,
+  GearSlot,
+  Player,
+  PlayerClass,
+  PlayerExtras,
+  StageInfo,
+} from "./game/types";
+
+export type { CrewId } from "./game/meta";
+
+export {
+  BATTLE_TICK_MS,
+  BOSS_EVERY,
+  ENERGY_REGEN_AMOUNT,
+  ENERGY_REGEN_MS,
+  MAX_AFK_TICKS,
+  MAX_ENERGY,
+  STAGES_PER_CHAPTER,
+} from "./game/constants";
+
+export {
+  ARENA_DAILY_FIGHTS,
+  BLITZ_ENERGY,
+  CREW,
+  DAILY_QUESTS,
+  GEAR_BR_PER_LEVEL,
+  GEAR_SLOTS,
+  MAX_GEAR_LEVEL,
+  arenaFight,
+  assignCrew,
+  bestStarsForStage,
+  blitzableStages,
+  blitzStage,
+  br,
+  canArenaFight,
+  canBlitz,
+  canClaimDaily,
+  canUpgradeGear,
+  claimDaily,
+  crewBonus,
+  defaultExtras,
+  gearBonus,
+  gearUpgradeCost,
+  normalizeExtras,
+  onCampaignStageClear,
+  pendingDailyClaims,
+  refreshDailies,
+  sanitizePlayer,
+  statBr,
+  trackEnergySpent,
+  unlockedCrew,
+  upgradeGear,
+} from "./game/meta";
+
+export {
+  CHAPTER_LORE,
+  CHAPTER_NAMES,
+  chapterLore,
+  requiredBr,
+  stageInfo,
+  stageLabel,
+} from "./game/progression";
 
 export const CLASSES: {
   key: PlayerClass;
@@ -22,113 +94,6 @@ export const CLASSES: {
   { key: "dancer", label: "DANCER", tagline: "Double-hit rhythm" },
   { key: "streamer", label: "STREAMER", tagline: "Bonus loot on kills" },
 ];
-
-export const MAX_ENERGY = 100;
-export const ENERGY_REGEN_MS = 30_000;
-export const ENERGY_REGEN_AMOUNT = 5;
-export const BATTLE_TICK_MS = 1_200;
-export const STAGES_PER_CHAPTER = 10;
-export const BOSS_EVERY = 5;
-export const MAX_AFK_TICKS = 180;
-
-export const CHAPTER_NAMES = [
-  "Backstage Alley",
-  "Neon Runway",
-  "Velvet VIP",
-  "Gala Ascension",
-  "Eternal Spotlight",
-  "Crystal Catwalk",
-  "Diamond Dynasty",
-  "Starfall Soirée",
-] as const;
-
-/** DotD-style story blurbs per chapter */
-export const CHAPTER_LORE = [
-  "Rumors say the alley hides jealous rivals who never made opening night…",
-  "The neon runway burns bright — paparazzi swarms ahead.",
-  "VIP velvet ropes guard secrets only icons may pass.",
-  "The gala ascends; only the fiercest earn the eternal spotlight.",
-  "Beyond the spotlight, crystal catwalks crack under heel.",
-  "A dynasty of diamonds demands blood-red lipstick tribute.",
-  "Starfall soirée — where fallen angels trade fame for mercy.",
-  "The final curtain rises. Slay or be forgotten.",
-] as const;
-
-export function chapterLore(chapter: number): string {
-  return CHAPTER_LORE[Math.min(chapter - 1, CHAPTER_LORE.length - 1)] ?? CHAPTER_LORE[0];
-}
-
-const ENEMY_PREFIXES = [
-  "Rogue",
-  "Shadow",
-  "Bitter",
-  "Jealous",
-  "Petty",
-  "Savage",
-  "Cursed",
-  "Fallen",
-];
-
-const ENEMY_TYPES = [
-  "Stagehand",
-  "Critic",
-  "Paparazzo",
-  "Rival",
-  "Hater",
-  "Gatekeeper",
-  "Saboteur",
-  "Usurper",
-];
-
-const BOSS_TITLES = [
-  "Wardrobe Tyrant",
-  "Critique Witch",
-  "Paparazzi King",
-  "Icon Slayer",
-  "The Algorithm",
-  "Mirror Queen",
-  "Velvet Overlord",
-  "Spotlight Devourer",
-];
-
-export type StageInfo = {
-  global: number;
-  chapter: number;
-  stageInChapter: number;
-  chapterName: string;
-  isBoss: boolean;
-};
-
-export type EnemySprite = "minion" | "rival" | "paparazzo" | "critic" | "boss";
-
-export type Enemy = {
-  name: string;
-  maxHp: number;
-  power: number;
-  isBoss: boolean;
-  sprite: EnemySprite;
-};
-
-export type CombatState = {
-  enemy: Enemy;
-  hp: number;
-  wave: number;
-  totalWaves: number;
-  stage: number;
-};
-
-export type BattleTickResult = {
-  player: Player;
-  combat: CombatState;
-  damage: number;
-  crit: boolean;
-  doubleHit: boolean;
-  killed: boolean;
-  waveCleared: boolean;
-  stageCleared: boolean;
-  stars: number;
-  log: string;
-};
 
 export const ACTIONS = {
   primp: {
@@ -162,23 +127,43 @@ export const ACTIONS = {
 
 export type ActionKey = keyof typeof ACTIONS;
 
-export function combatPower(player: Player): number {
-  return player.glamour + player.makeup + player.fashion;
-}
+const ENEMY_PREFIXES = [
+  "Rogue",
+  "Shadow",
+  "Bitter",
+  "Jealous",
+  "Petty",
+  "Savage",
+  "Cursed",
+  "Fallen",
+];
 
-export function stageInfo(stage: number): StageInfo {
-  const global = Math.max(1, stage);
-  const chapter = Math.ceil(global / STAGES_PER_CHAPTER);
-  const stageInChapter = ((global - 1) % STAGES_PER_CHAPTER) + 1;
-  const chapterName =
-    CHAPTER_NAMES[Math.min(chapter - 1, CHAPTER_NAMES.length - 1)] ?? "Unknown";
-  const isBoss = stageInChapter % BOSS_EVERY === 0;
-  return { global, chapter, stageInChapter, chapterName, isBoss };
-}
+const ENEMY_TYPES = [
+  "Stagehand",
+  "Critic",
+  "Paparazzo",
+  "Rival",
+  "Hater",
+  "Gatekeeper",
+  "Saboteur",
+  "Usurper",
+];
 
-export function stageLabel(stage: number): string {
-  const info = stageInfo(stage);
-  return `Ch.${info.chapter}-${info.stageInChapter}`;
+const BOSS_TITLES = [
+  "Wardrobe Tyrant",
+  "Critique Witch",
+  "Paparazzo King",
+  "Icon Slayer",
+  "The Algorithm",
+  "Mirror Queen",
+  "Velvet Overlord",
+  "Spotlight Devourer",
+];
+
+const RIVAL_SPRITES: EnemySprite[] = ["rival", "paparazzo", "critic"];
+
+function rivalSpriteForStage(stage: number): EnemySprite {
+  return RIVAL_SPRITES[stage % RIVAL_SPRITES.length];
 }
 
 export function enemyForStage(stage: number): Enemy {
@@ -197,12 +182,6 @@ export function enemyForStage(stage: number): Enemy {
     isBoss: info.isBoss,
     sprite: info.isBoss ? "boss" : rivalSpriteForStage(scale),
   };
-}
-
-const RIVAL_SPRITES: EnemySprite[] = ["rival", "paparazzo", "critic"];
-
-function rivalSpriteForStage(stage: number): EnemySprite {
-  return RIVAL_SPRITES[stage % RIVAL_SPRITES.length];
 }
 
 export function wavesForStage(stage: number): number {
@@ -250,7 +229,7 @@ function rollDamage(power: number, enemyPower: number, crit: boolean): number {
 }
 
 function killLoot(player: Player, enemy: Enemy, playerClass: PlayerClass) {
-  const power = combatPower(player);
+  const power = br(player);
   const lusterBase = Math.max(2, Math.floor(power / 8) + Math.floor(enemy.maxHp / 40));
   const fameBase = enemy.isBoss ? 5 : 1;
   const lusterBonus = playerClass === "streamer" ? 3 : 0;
@@ -272,7 +251,7 @@ export function battleTick(
   combat: CombatState,
   playerClass: PlayerClass
 ): BattleTickResult {
-  const power = combatPower(player);
+  const power = br(player);
   const crit = Math.random() < classCritChance(playerClass);
   const doubleHit = playerClass === "dancer" && Math.random() < 0.3;
 
@@ -309,18 +288,23 @@ export function battleTick(
       waveCleared = true;
       log = `Wave ${combat.wave} cleared — ${enemy.name} enters!`;
     } else {
+      const clearedStage = player.stage;
       const loot = killLoot(player, combat.enemy, playerClass);
       stars = starsForKill(power, combat.enemy);
-      nextPlayer = {
-        ...player,
-        luster: player.luster + loot.luster,
-        fame: player.fame + loot.fame,
-        stage: player.stage + 1,
-      };
+      nextPlayer = onCampaignStageClear(
+        {
+          ...player,
+          luster: player.luster + loot.luster,
+          fame: player.fame + loot.fame,
+          stage: player.stage + 1,
+        },
+        clearedStage,
+        stars
+      );
       nextCombat = newCombatState(nextPlayer.stage);
       stageCleared = true;
       const bossTag = combat.enemy.isBoss ? " BOSS DOWN!" : "";
-      log = `★${stars} ${stageLabel(player.stage)} cleared${bossTag} +✦${loot.luster} +★${loot.fame}`;
+      log = `★${stars} ${stageLabel(clearedStage)} cleared${bossTag} +✦${loot.luster} +★${loot.fame}`;
     }
   } else {
     const verbs = crit ? ["CRIT", "SLAY", "DEVASTATE"] : ["hit", "strike", "slash"];
@@ -399,9 +383,10 @@ export function canAct(player: Player, action: ActionKey): boolean {
   return true;
 }
 
-export function applyAction(player: Player, action: ActionKey): Player {
+export function applyAction(player: Player, action: ActionKey): Player | null {
+  if (!canAct(player, action)) return null;
   const cost = ACTIONS[action];
-  return {
+  const next = {
     ...player,
     glamour: player.glamour + cost.glamour,
     makeup: player.makeup + cost.makeup,
@@ -410,12 +395,14 @@ export function applyAction(player: Player, action: ActionKey): Player {
     fame: player.fame + cost.fame,
     energy: player.energy - cost.energy,
   };
+  return trackEnergySpent(next, cost.energy);
+}
+
+export function actionBrGain(action: ActionKey): number {
+  const cost = ACTIONS[action];
+  return cost.glamour + cost.makeup + cost.fashion;
 }
 
 export function hpPercent(hp: number, maxHp: number): number {
   return Math.min(100, Math.max(0, Math.round((hp / maxHp) * 100)));
-}
-
-export function statPercent(value: number): number {
-  return Math.min(100, Math.round(value % 100));
 }
