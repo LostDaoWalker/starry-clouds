@@ -42,6 +42,22 @@ export const CHAPTER_NAMES = [
   "Starfall Soirée",
 ] as const;
 
+/** DotD-style story blurbs per chapter */
+export const CHAPTER_LORE = [
+  "Rumors say the alley hides jealous rivals who never made opening night…",
+  "The neon runway burns bright — paparazzi swarms ahead.",
+  "VIP velvet ropes guard secrets only icons may pass.",
+  "The gala ascends; only the fiercest earn the eternal spotlight.",
+  "Beyond the spotlight, crystal catwalks crack under heel.",
+  "A dynasty of diamonds demands blood-red lipstick tribute.",
+  "Starfall soirée — where fallen angels trade fame for mercy.",
+  "The final curtain rises. Slay or be forgotten.",
+] as const;
+
+export function chapterLore(chapter: number): string {
+  return CHAPTER_LORE[Math.min(chapter - 1, CHAPTER_LORE.length - 1)] ?? CHAPTER_LORE[0];
+}
+
 const ENEMY_PREFIXES = [
   "Rogue",
   "Shadow",

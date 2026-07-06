@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BottomDock } from "./components/BottomDock";
-import { HeroPortrait } from "./components/HeroPortrait";
+import { InfoBar } from "./components/InfoBar";
+import { TabNav } from "./components/TabNav";
 import { ClassSelect } from "./components/ClassSelect";
 import {
   DamageFloaters,
@@ -187,6 +188,9 @@ export default function App() {
   const themeStyle = {
     "--arena-bg": `url(${base}ui/arena-bg.jpg)`,
     "--ui-corner": `url(${base}ui/ui-corner.png)`,
+    "--ui-parchment": `url(${base}ui/ui-parchment.jpg)`,
+    "--ui-stone-bar": `url(${base}ui/ui-stone-bar.jpg)`,
+    "--ui-raid-banner": `url(${base}ui/ui-raid-banner.jpg)`,
   } as React.CSSProperties;
 
   if (error) {
@@ -220,27 +224,18 @@ export default function App() {
   return (
     <GameFrame style={themeStyle}>
       <main className={`pbbg pbbg-ch-${(info.chapter - 1) % 4}`}>
-        <header className="top-bar panel panel-ornate">
-          <div className="brand">
-            <h1>GLAMOUR</h1>
-          </div>
-          <div className="currencies">
-            <span className="currency-pill luster">
-              <GameIcon name="luster" size="sm" />
-              <span className="currency-val">{live.luster}</span>
-            </span>
-            <span className="currency-pill energy">
-              <GameIcon name="energy" size="sm" />
-              <span className="currency-val">{live.energy}</span>
-            </span>
-            <span className="currency-pill fame">
-              <GameIcon name="fame" size="sm" />
-              <span className="currency-val">{live.fame}</span>
-            </span>
-          </div>
-        </header>
+        <InfoBar
+          playerClass={playerClass}
+          stage={live.stage}
+          power={power}
+          luster={live.luster}
+          energy={live.energy}
+          fame={live.fame}
+        />
 
-        <section className={`arena panel panel-ornate ${combat.enemy.isBoss ? "arena-boss-fight" : ""}`}>
+        <TabNav />
+
+        <section className={`arena panel panel-stone ${combat.enemy.isBoss ? "arena-boss-fight" : ""}`}>
           <div className="arena-bg" aria-hidden />
           <div className="arena-overlay" aria-hidden />
 
@@ -264,7 +259,11 @@ export default function App() {
             WAVE {combat.wave}/{combat.totalWaves}
           </div>
 
-          {combat.enemy.isBoss && <div className="boss-warning">⚠ BOSS</div>}
+          {combat.enemy.isBoss && (
+            <div className="boss-warning">
+              <span>RAID BOSS</span>
+            </div>
+          )}
 
           <VictoryFlash active={victoryFlash} />
           <HitFlash active={enemyHit} />
@@ -318,8 +317,8 @@ export default function App() {
           </div>
         </section>
 
-        <section className="combat-log panel panel-ornate">
-          <p className="log-title">BATTLE LOG</p>
+        <section className="combat-log panel panel-parchment">
+          <p className="log-title">CHRONICLE</p>
           <ul>
             {log.map((line, i) => (
               <li key={`${i}-${line}`} className={line.includes("cleared") ? "log-victory" : ""}>
@@ -329,8 +328,7 @@ export default function App() {
           </ul>
         </section>
 
-        <footer className="action-row">
-          <HeroPortrait playerClass={playerClass} power={power} stage={live.stage} />
+        <footer className="action-row panel panel-stone">
           <nav className="actions">
             {(Object.keys(ACTIONS) as ActionKey[]).map((key) => (
               <button

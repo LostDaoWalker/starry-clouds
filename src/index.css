@@ -8,6 +8,14 @@
   --white: #f5f0eb;
   --hp-green: #3dff8a;
   --hp-red: #ff3d6b;
+  /* Dawn of the Dragons blend */
+  --parchment: #e8d4a8;
+  --parchment-dark: #c4a574;
+  --stone: #3d3428;
+  --stone-light: #5c5040;
+  --ember: #8b3a2a;
+  --forest: #2d4a35;
+  --ink: #2a1810;
   font-family: "DM Sans", system-ui, sans-serif;
   color: var(--white);
   background: var(--black);
@@ -31,5 +39,5 @@ body,
 body {
   overflow: hidden;
   touch-action: manipulation;
-  background: #030208;
+  background: #1a1410;
 }
