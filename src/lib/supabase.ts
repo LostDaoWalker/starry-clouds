@@ -1,88 +1,55 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Player } from "../game";
 
-let client: SupabaseClient | null = null;
+const PLAYER_ID_KEY = "glamour_player_id";
 
-export function getSupabase(): SupabaseClient {
-  if (client) return client;
-
-  const url = import.meta.env.VITE_SUPABASE_URL;
-  const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-  if (!url || !key) {
-    throw new Error("Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY");
-  }
-
-  client = createClient(url, key);
-  return client;
+function normalisePlayer(raw: Record<string, unknown>): Player {
+  return {
+    id: raw.id as string,
+    glamour: raw.glamour as number,
+    makeup: raw.makeup as number,
+    fashion: raw.fashion as number,
+    luster: raw.luster as number,
+    energy: raw.energy as number,
+    fame: raw.fame as number,
+    last_energy_at:
+      raw.last_energy_at instanceof Date
+        ? (raw.last_energy_at as Date).toISOString()
+        : (raw.last_energy_at as string),
+  };
 }
 
 export async function ensurePlayer(): Promise<Player> {
-  const supabase = getSupabase();
+  const storedId = localStorage.getItem(PLAYER_ID_KEY);
+  const url = storedId ? `/api/player?id=${storedId}` : "/api/player";
 
-  const { data: sessionData, error: sessionError } =
-    await supabase.auth.getSession();
-  if (sessionError) throw sessionError;
-
-  let userId = sessionData.session?.user.id;
-
-  if (!userId) {
-    const { data: authData, error: authError } =
-      await supabase.auth.signInAnonymously();
-    if (authError) throw authError;
-    userId = authData.user?.id;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      (body as { error?: string }).error ?? `Server error ${res.status}`
+    );
   }
 
-  if (!userId) throw new Error("Could not establish anonymous session");
-
-  const { data: existing, error: fetchError } = await supabase
-    .from("players")
-    .select("*")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (fetchError) throw fetchError;
-  if (existing) return existing as Player;
-
-  const fresh: Player = {
-    id: userId,
-    glamour: 5,
-    makeup: 5,
-    fashion: 5,
-    luster: 20,
-    energy: 100,
-    fame: 0,
-    last_energy_at: new Date().toISOString(),
-  };
-
-  const { data: created, error: insertError } = await supabase
-    .from("players")
-    .insert(fresh)
-    .select()
-    .single();
-
-  if (insertError) throw insertError;
-  return created as Player;
+  const raw = (await res.json()) as Record<string, unknown>;
+  const player = normalisePlayer(raw);
+  localStorage.setItem(PLAYER_ID_KEY, player.id);
+  return player;
 }
 
 export async function savePlayer(player: Player): Promise<Player> {
-  const supabase = getSupabase();
+  const res = await fetch("/api/player", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(player),
+  });
 
-  const { data, error } = await supabase
-    .from("players")
-    .update({
-      glamour: player.glamour,
-      makeup: player.makeup,
-      fashion: player.fashion,
-      luster: player.luster,
-      energy: player.energy,
-      fame: player.fame,
-      last_energy_at: player.last_energy_at,
-    })
-    .eq("id", player.id)
-    .select()
-    .single();
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(
+      (body as { error?: string }).error ?? `Server error ${res.status}`
+    );
+  }
 
-  if (error) throw error;
-  return data as Player;
+  const raw = (await res.json()) as Record<string, unknown>;
+  return normalisePlayer(raw);
 }
