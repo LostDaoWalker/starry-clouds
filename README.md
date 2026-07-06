@@ -1,56 +1,52 @@
-# Starry Clouds
+# GLAMOUR
 
-A tiny wholesome xianxia webgame with React, Three.js, shadcn-style UI pieces, and a very simple Node server.
+A one-screen persistent browser game. Play as a glamorous anime-manhwa heroine chasing makeup, fashion, and fame.
 
-## Play Locally
+<img src="public/hero.png" alt="GLAMOUR mockup" width="640" />
 
-```powershell
+## Play
+
+- **PRIMP** — spend energy to boost makeup and glamour
+- **SHOP** — spend luster for fashion
+- **STRUT** — spend energy to earn luster and fame (needs high stats)
+
+Energy regenerates over time. Progress persists via Supabase.
+
+## Stack
+
+- **Frontend** — React + Vite, single screen, dead-minimal UI
+- **Database** — Supabase (Postgres + anonymous auth + RLS)
+- **Hosting** — Railway
+
+## Setup
+
+### 1. Supabase
+
+1. Create a project at [supabase.com](https://supabase.com)
+2. Enable **Anonymous sign-ins**: Authentication → Providers → Anonymous
+3. Run the migration in `supabase/migrations/20260706000000_glamour_game.sql` via the SQL Editor
+4. Copy your project URL and anon key from Settings → API
+
+### 2. Local dev
+
+```bash
+cp .env.example .env   # fill in Supabase values
 npm install
-npm run build
-npm start
-```
-
-Open `http://localhost:4173`.
-
-For live editing:
-
-```powershell
 npm run dev
 ```
 
-## What You Can Do
+### 3. Railway
 
-- Register or log in as a cute cultivator.
-- Walk around the jade cloud sect with WASD or arrow keys.
-- Gather glowing herbs in the Three.js hub.
-- Meditate, do gentle spirit quests, and spar with other accounts.
-- Climb the tiny leaderboard.
+1. Connect this repo to [Railway](https://railway.app)
+2. Set environment variables:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+3. Railway reads `railway.toml` — builds with `npm run build`, starts with `npm start`
 
-## Deploy On Render
+## Environment
 
-1. Push this project to GitHub.
-2. In Render, create a new **Web Service** from the repo.
-3. Use these settings:
-
-```text
-Build Command: npm install && npm run build
-Start Command: npm start
-```
-
-Render will provide `PORT`, and the included server uses it automatically.
-
-There is also a `render.yaml` file, so Render can detect the service setup.
-
-## Data Persistence
-
-The server uses durable Postgres storage when `DATABASE_URL` is set. On Render, the included `render.yaml` declares a `starry-clouds-db` Postgres database and wires its connection string into the web service.
-
-For local play, the server falls back to `data/game.json`, which is ignored by git.
-
-## Assets
-
-Generated image assets live in `public/assets/`. The latest black-and-jade backdrop is:
-
-- `public/assets/jade-moon-sect.png`
-
-The original generated file remains under `C:\Users\J\.codex\generated_images\...`.
+| Variable | Description |
+|---|---|
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase publishable/anon key |
+| `PORT` | Set by Railway automatically |
