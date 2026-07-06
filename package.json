@@ -11,6 +11,7 @@
     "sprites:process": "node scripts/chroma-key.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.0",
     "express": "^5.1.0",
     "pg": "^8.13.3",
     "react": "^19.1.0",
