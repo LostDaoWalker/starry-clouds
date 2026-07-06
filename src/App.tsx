@@ -105,7 +105,7 @@ export default function App() {
       <main className="screen error-screen">
         <p className="error-title">GLAMOUR</p>
         <p className="error-msg">{error}</p>
-        <p className="error-hint">Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY</p>
+        <p className="error-hint">Ensure DATABASE_URL is set and the database is reachable</p>
       </main>
     );
   }
