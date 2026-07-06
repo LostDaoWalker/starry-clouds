@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import type { Player } from "../game";
+import { normalizeExtras, refreshDailies, type Player } from "../game";
 
 const url = import.meta.env.VITE_SUPABASE_URL;
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -32,7 +32,7 @@ export function touchActive(): void {
 }
 
 function normalisePlayer(raw: Record<string, unknown>): Player {
-  return {
+  const player: Player = {
     id: raw.id as string,
     glamour: raw.glamour as number,
     makeup: raw.makeup as number,
@@ -45,7 +45,9 @@ function normalisePlayer(raw: Record<string, unknown>): Player {
       raw.last_energy_at instanceof Date
         ? (raw.last_energy_at as Date).toISOString()
         : (raw.last_energy_at as string),
+    extras: normalizeExtras(raw.extras),
   };
+  return refreshDailies(player);
 }
 
 export async function ensurePlayer(): Promise<Player> {
@@ -69,6 +71,7 @@ export async function savePlayer(player: Player): Promise<Player> {
     p_fame: player.fame,
     p_last_energy_at: player.last_energy_at,
     p_stage: player.stage,
+    p_extras: player.extras,
   });
 
   if (error) throw error;

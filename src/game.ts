@@ -10,6 +10,7 @@ export type Player = {
   fame: number;
   stage: number;
   last_energy_at: string;
+  extras: import("./game/meta").PlayerExtras;
 };
 
 export const CLASSES: {
@@ -162,8 +163,39 @@ export const ACTIONS = {
 
 export type ActionKey = keyof typeof ACTIONS;
 
+import { totalPower, recordStageStars, trackEnergySpent } from "./game/meta";
+
+export type { PlayerExtras, GearSlot, CrewId } from "./game/meta";
+export {
+  defaultExtras,
+  normalizeExtras,
+  refreshDailies,
+  totalPower,
+  gearBonus,
+  crewBonus,
+  GEAR_SLOTS,
+  CREW,
+  DAILY_QUESTS,
+  ARENA_DAILY_FIGHTS,
+  BLITZ_ENERGY,
+  MAX_GEAR_LEVEL,
+  gearUpgradeCost,
+  upgradeGear,
+  canUpgradeGear,
+  assignCrew,
+  unlockedCrew,
+  arenaFight,
+  canArenaFight,
+  blitzStage,
+  canBlitz,
+  blitzableStages,
+  claimDaily,
+  canClaimDaily,
+  bestStarsForStage,
+} from "./game/meta";
+
 export function combatPower(player: Player): number {
-  return player.glamour + player.makeup + player.fashion;
+  return totalPower(player);
 }
 
 export function stageInfo(stage: number): StageInfo {
@@ -311,12 +343,16 @@ export function battleTick(
     } else {
       const loot = killLoot(player, combat.enemy, playerClass);
       stars = starsForKill(power, combat.enemy);
-      nextPlayer = {
-        ...player,
-        luster: player.luster + loot.luster,
-        fame: player.fame + loot.fame,
-        stage: player.stage + 1,
-      };
+      nextPlayer = recordStageStars(
+        {
+          ...player,
+          luster: player.luster + loot.luster,
+          fame: player.fame + loot.fame,
+          stage: player.stage + 1,
+        },
+        player.stage,
+        stars
+      );
       nextCombat = newCombatState(nextPlayer.stage);
       stageCleared = true;
       const bossTag = combat.enemy.isBoss ? " BOSS DOWN!" : "";
@@ -401,7 +437,7 @@ export function canAct(player: Player, action: ActionKey): boolean {
 
 export function applyAction(player: Player, action: ActionKey): Player {
   const cost = ACTIONS[action];
-  return {
+  const next = {
     ...player,
     glamour: player.glamour + cost.glamour,
     makeup: player.makeup + cost.makeup,
@@ -410,6 +446,7 @@ export function applyAction(player: Player, action: ActionKey): Player {
     fame: player.fame + cost.fame,
     energy: player.energy - cost.energy,
   };
+  return trackEnergySpent(next, cost.energy);
 }
 
 export function hpPercent(hp: number, maxHp: number): number {

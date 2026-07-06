@@ -270,8 +270,10 @@
   font-size: 0.72rem;
   letter-spacing: 0.12em;
   color: var(--parchment-dark);
+  border: none;
   border-right: 1px solid var(--stone);
-  cursor: default;
+  background: transparent;
+  cursor: pointer;
   user-select: none;
 }
 
@@ -1174,4 +1176,338 @@
   .combat-log {
     max-height: 3.2rem;
   }
+}
+
+/* PBBG meta panels — arena, quests, forge, crew */
+.meta-panel {
+  position: relative;
+  margin: 0.2rem 0.35rem 0;
+  padding: 0.5rem 0.6rem;
+  min-height: 14rem;
+  overflow: hidden;
+}
+
+.meta-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+}
+
+.meta-panel-header h2 {
+  margin: 0;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+}
+
+.meta-sub {
+  margin-left: auto;
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  opacity: 0.55;
+  text-transform: uppercase;
+}
+
+.meta-hint {
+  margin: 0.35rem 0;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  opacity: 0.75;
+  font-family: "Crimson Pro", serif;
+}
+
+.meta-action-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.6rem;
+  padding: 0.45rem;
+  border: 2px solid var(--gold);
+  background: linear-gradient(180deg, rgba(139, 58, 42, 0.6), rgba(40, 20, 12, 0.9));
+  color: var(--gold);
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+}
+
+.meta-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.arena-panel .raid-banner {
+  position: absolute;
+  inset: 0;
+  background: var(--ui-raid-banner) center/cover no-repeat;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.arena-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  position: relative;
+  z-index: 1;
+}
+
+.arena-stat {
+  text-align: center;
+  padding: 0.35rem 0.2rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--stone);
+}
+
+.arena-stat-label {
+  display: block;
+  font-size: 0.48rem;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+  text-transform: uppercase;
+}
+
+.arena-stat-val {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--pink);
+}
+
+.quest-panel {
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.quest-header h2 {
+  color: var(--parchment-dark);
+}
+
+.blitz-header {
+  margin-top: 0.6rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid rgba(90, 70, 50, 0.4);
+}
+
+.daily-list,
+.blitz-list,
+.gear-list,
+.crew-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.daily-row,
+.blitz-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgba(90, 70, 50, 0.25);
+  font-size: 0.62rem;
+}
+
+.daily-row.daily-done {
+  opacity: 0.5;
+}
+
+.daily-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.daily-label {
+  display: block;
+  font-weight: 600;
+}
+
+.daily-progress {
+  font-size: 0.55rem;
+  opacity: 0.7;
+}
+
+.daily-reward {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.daily-claim-btn,
+.blitz-btn,
+.gear-upgrade-btn {
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--gold);
+  background: rgba(40, 30, 20, 0.8);
+  color: var(--gold);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.daily-claim-btn:disabled,
+.blitz-btn:disabled,
+.gear-upgrade-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.daily-claimed {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.blitz-stage {
+  flex: 1;
+  font-weight: 600;
+}
+
+.blitz-cost {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+/* Modal overlays — forge & party */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 25;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(5, 3, 10, 0.82);
+  backdrop-filter: blur(4px);
+}
+
+.modal-panel {
+  width: 100%;
+  max-height: 70%;
+  padding: 0.6rem;
+  overflow-y: auto;
+  border-bottom: none;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.modal-header h2 {
+  margin: 0;
+  flex: 1;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  color: var(--white);
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.gear-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--stone);
+}
+
+.gear-info {
+  flex: 1;
+}
+
+.gear-name {
+  display: block;
+  font-weight: 700;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+}
+
+.gear-level {
+  font-size: 0.55rem;
+  opacity: 0.65;
+}
+
+.gear-upgrade-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 3.2rem;
+  justify-content: center;
+}
+
+.crew-row {
+  margin-bottom: 0.3rem;
+}
+
+.crew-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--stone);
+  background: rgba(20, 16, 12, 0.7);
+  color: var(--white);
+  text-align: left;
+  cursor: pointer;
+}
+
+.crew-pick.crew-active {
+  border-color: var(--pink);
+  box-shadow: inset 0 0 8px rgba(255, 45, 138, 0.2);
+}
+
+.crew-row.crew-locked .crew-pick {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.crew-name {
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+
+.crew-tag {
+  font-size: 0.5rem;
+  opacity: 0.55;
+  text-transform: uppercase;
+}
+
+.crew-bonus {
+  margin-left: auto;
+  color: var(--pink);
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.crew-lock {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  width: 100%;
+  font-size: 0.55rem;
+  opacity: 0.6;
+}
+
+.crew-active-label {
+  margin: 0.5rem 0 0;
+  font-size: 0.62rem;
+  text-align: center;
+  color: var(--pink);
 }

@@ -8,11 +8,23 @@ const DOCK = [
   { key: "shop", label: "SHOP", icon: "shop" as const },
 ] as const;
 
+type DockKey = (typeof DOCK)[number]["key"];
+
 type BottomDockProps = {
   onEnhance: () => void;
+  onForge: () => void;
+  onParty: () => void;
+  onShop: () => void;
 };
 
-export function BottomDock({ onEnhance }: BottomDockProps) {
+export function BottomDock({ onEnhance, onForge, onParty, onShop }: BottomDockProps) {
+  const handlers: Partial<Record<DockKey, () => void>> = {
+    hero: onEnhance,
+    forge: onForge,
+    party: onParty,
+    shop: onShop,
+  };
+
   return (
     <nav className="bottom-dock" aria-label="Game systems">
       {DOCK.map((item) => (
@@ -20,7 +32,7 @@ export function BottomDock({ onEnhance }: BottomDockProps) {
           key={item.key}
           type="button"
           className={`dock-btn dock-${item.key}`}
-          onClick={item.key === "hero" ? onEnhance : undefined}
+          onClick={handlers[item.key]}
           title={item.label}
         >
           <GameIcon name={item.icon} size="sm" />

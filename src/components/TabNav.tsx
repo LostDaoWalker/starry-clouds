@@ -1,16 +1,28 @@
-const TABS = [
-  { key: "home", label: "HOME", active: true },
-  { key: "quest", label: "QUEST", active: false },
-  { key: "raid", label: "RAID", active: false },
-] as const;
+export type GameTab = "home" | "quest" | "raid";
 
-export function TabNav() {
+const TABS: { key: GameTab; label: string }[] = [
+  { key: "home", label: "HOME" },
+  { key: "quest", label: "QUEST" },
+  { key: "raid", label: "RAID" },
+];
+
+type TabNavProps = {
+  active: GameTab;
+  onChange: (tab: GameTab) => void;
+};
+
+export function TabNav({ active, onChange }: TabNavProps) {
   return (
     <nav className="tab-nav" aria-label="Game sections">
       {TABS.map((tab) => (
-        <span key={tab.key} className={`tab-btn ${tab.active ? "tab-active" : ""}`}>
+        <button
+          key={tab.key}
+          type="button"
+          className={`tab-btn ${active === tab.key ? "tab-active" : ""}`}
+          onClick={() => onChange(tab.key)}
+        >
           {tab.label}
-        </span>
+        </button>
       ))}
     </nav>
   );
