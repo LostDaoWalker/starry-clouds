@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BottomDock } from "./components/BottomDock";
+import { FaceCard } from "./components/FaceCard";
 import { InfoBar } from "./components/InfoBar";
+import { MogFlash, useMogFlash } from "./components/MogFlash";
 import { TabNav } from "./components/TabNav";
 import { ClassSelect } from "./components/ClassSelect";
 import {
@@ -29,12 +31,15 @@ import {
   catchUpBattles,
   combatPower,
   hpPercent,
+  mogDuel,
   newCombatState,
   regenEnergy,
+  sceneForChapter,
   stageInfo,
   stageLabel,
 } from "./game";
 import { loadPlayerClass, savePlayerClass } from "./lib/playerClass";
+import { sceneUrl } from "./lib/scenes";
 import { ensurePlayer, lastActiveAt, savePlayer, touchActive } from "./lib/supabase";
 import "./App.css";
 
@@ -65,6 +70,8 @@ export default function App() {
   const { floaters, spawn: spawnDamage } = useDamageFloaters();
   const { flash: victoryFlash, trigger: triggerVictory } = useVictoryFlash();
   const { hit: enemyHit, trigger: triggerHit } = useHitFlash();
+  const { active: mogActive, result: mogResult, trigger: triggerMog } = useMogFlash();
+  const [mogVariant, setMogVariant] = useState<"duel" | "crit">("duel");
 
   const flashToast = useCallback((message: string) => {
     setToast(message);
@@ -124,6 +131,15 @@ export default function App() {
         setCombat(result.combat);
         spawnDamage(result.damage, result.crit);
         if (!result.killed) triggerHit();
+        if (result.crit && result.killed) {
+          setMogVariant("crit");
+          triggerMog({
+            playerScore: combatPower(current),
+            rivalScore: c.enemy.power,
+            mogged: true,
+            rivalName: c.enemy.name,
+          });
+        }
         setLog((lines) => [result.log, ...lines].slice(0, MAX_LOG));
 
         if (result.stageCleared) {
@@ -139,7 +155,7 @@ export default function App() {
     }, BATTLE_TICK_MS);
 
     return () => window.clearInterval(id);
-  }, [player?.id, playerClass, spawnDamage, triggerVictory, triggerHit]);
+  }, [player?.id, playerClass, spawnDamage, triggerVictory, triggerHit, triggerMog]);
 
   const pickClass = (next: PlayerClass) => {
     savePlayerClass(next);
@@ -163,9 +179,23 @@ export default function App() {
       setBusy(action);
       const next = applyAction(refreshed, action);
       setPlayer(next);
+
+      if (action === "strut") {
+        setMogVariant("duel");
+        triggerMog(mogDuel(next));
+      }
+
+      const statGain =
+        ACTIONS[action].glamour + ACTIONS[action].makeup + ACTIONS[action].fashion;
+      const lootGain =
+        action === "strut"
+          ? ` +✦${ACTIONS[action].luster} +★${ACTIONS[action].fame}`
+          : action === "shop"
+            ? " — new drip unlocked"
+            : "";
       setLog((lines) =>
         [
-          `${ACTIONS[action].label} — BR +${ACTIONS[action].glamour + ACTIONS[action].makeup + ACTIONS[action].fashion}!`,
+          `${ACTIONS[action].label}${statGain > 0 ? ` — BR +${statGain}` : ""}${lootGain}`,
           ...lines,
         ].slice(0, MAX_LOG)
       );
@@ -181,12 +211,14 @@ export default function App() {
         setBusy(null);
       }
     },
-    [player, busy, flashToast]
+    [player, busy, flashToast, triggerMog]
   );
 
   const base = import.meta.env.BASE_URL;
+  const scene = sceneForChapter(player?.stage ? stageInfo(player.stage).chapter : 1);
   const themeStyle = {
-    "--arena-bg": `url(${base}ui/arena-bg.jpg)`,
+    "--arena-bg": `url(${sceneUrl(scene)})`,
+    "--scene-bg": `url(${sceneUrl(scene)})`,
     "--ui-corner": `url(${base}ui/ui-corner.png)`,
     "--ui-parchment": `url(${base}ui/ui-parchment.jpg)`,
     "--ui-stone-bar": `url(${base}ui/ui-stone-bar.jpg)`,
@@ -267,6 +299,7 @@ export default function App() {
 
           <VictoryFlash active={victoryFlash} />
           <HitFlash active={enemyHit} />
+          <MogFlash active={mogActive} result={mogResult} variant={mogVariant} />
           <DamageFloaters floaters={floaters} />
 
           <QuestTracker
@@ -278,12 +311,16 @@ export default function App() {
 
           <div className="arena-battle">
             <div className="arena-side arena-player">
-              <div className="fighter-card">
-                <p className="arena-label">{classLabel}</p>
-                <div className="hp-bar hp-player hp-ornate">
-                  <div className="hp-fill hp-fill-player" style={{ width: "100%" }} />
+              {playerClass ? (
+                <FaceCard playerClass={playerClass} player={live} compact />
+              ) : (
+                <div className="fighter-card">
+                  <p className="arena-label">{classLabel}</p>
+                  <div className="hp-bar hp-player hp-ornate">
+                    <div className="hp-fill hp-fill-player" style={{ width: "100%" }} />
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="hero-actor-wrap">
                 <div className="hero-aura" aria-hidden />
                 {playerClass && <SpriteActor playerClass={playerClass} />}

@@ -383,8 +383,8 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(26, 18, 12, 0.65) 0%, transparent 28%, transparent 62%, rgba(10, 8, 6, 0.8) 100%),
-    radial-gradient(ellipse 85% 65% at 50% 50%, transparent 15%, rgba(20, 12, 8, 0.55) 100%);
+    linear-gradient(180deg, rgba(10, 6, 14, 0.55) 0%, transparent 25%, transparent 58%, rgba(6, 4, 10, 0.75) 100%),
+    radial-gradient(ellipse 80% 60% at 50% 45%, transparent 10%, rgba(8, 4, 12, 0.45) 100%);
   z-index: 1;
   pointer-events: none;
 }
@@ -1052,6 +1052,15 @@
   color: var(--pink);
 }
 
+.class-select-sub {
+  margin: 0 0 0.5rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  opacity: 0.85;
+}
+
 .class-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1174,4 +1183,198 @@
   .combat-log {
     max-height: 3.2rem;
   }
+}
+
+/* ── Face cards (cross-pollinated: gacha portrait + LoA stat bars) ── */
+.face-card {
+  position: relative;
+  width: 100%;
+  max-width: 118px;
+  padding: 0.35rem 0.3rem 0.4rem;
+  margin-bottom: 0.1rem;
+  border: 2px solid var(--gold-dark);
+  background: linear-gradient(180deg, rgba(26, 14, 36, 0.95), rgba(8, 4, 14, 0.98));
+  box-shadow:
+    inset 0 0 12px rgba(255, 45, 138, 0.12),
+    0 0 14px rgba(123, 47, 255, 0.25);
+}
+
+.face-card-rarity {
+  position: absolute;
+  top: 0.15rem;
+  right: 0.2rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+  padding: 0.05rem 0.25rem;
+  border: 1px solid currentColor;
+  z-index: 2;
+}
+
+.rarity-n .face-card-rarity { color: #aaa; }
+.rarity-r .face-card-rarity { color: var(--cyan); }
+.rarity-sr .face-card-rarity { color: var(--pink); }
+.rarity-ur .face-card-rarity {
+  color: var(--gold);
+  animation: ur-shimmer 1.2s ease infinite;
+}
+
+@keyframes ur-shimmer {
+  0%, 100% { text-shadow: 0 0 6px var(--gold); }
+  50% { text-shadow: 0 0 14px var(--gold), 0 0 4px var(--pink); }
+}
+
+.rarity-ur.face-card {
+  border-color: var(--gold);
+  box-shadow:
+    inset 0 0 16px rgba(255, 208, 0, 0.15),
+    0 0 20px rgba(255, 45, 138, 0.35);
+}
+
+.face-card-portrait {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.15rem;
+}
+
+.face-card-portrait .sprite-actor.sprite-portrait {
+  max-height: 4.2rem;
+  width: auto;
+}
+
+.face-card-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.face-stat {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr 1.2rem;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.45rem;
+}
+
+.face-stat-label {
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.face-stat-gold { color: var(--gold); }
+.face-stat-pink { color: var(--pink); }
+.face-stat-cyan { color: var(--cyan); }
+
+.face-stat-track {
+  height: 4px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.face-stat-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.35s ease;
+}
+
+.face-stat-fill-gold { background: linear-gradient(90deg, var(--gold-dark), var(--gold)); }
+.face-stat-fill-pink { background: linear-gradient(90deg, #c0186a, var(--pink)); }
+.face-stat-fill-cyan { background: linear-gradient(90deg, #0090aa, var(--cyan)); }
+
+.face-stat-val {
+  text-align: right;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.face-card-br {
+  margin: 0.15rem 0 0;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  text-align: center;
+}
+
+.face-card-compact {
+  max-width: 108px;
+  padding: 0.25rem 0.2rem 0.3rem;
+}
+
+.face-card-compact .face-card-portrait .sprite-actor.sprite-portrait {
+  max-height: 3.2rem;
+}
+
+.class-card .face-card {
+  max-width: 100%;
+  pointer-events: none;
+}
+
+/* Mog flash overlay */
+.mog-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  background: radial-gradient(circle, rgba(255, 45, 138, 0.25), transparent 70%);
+  pointer-events: none;
+  animation: mog-in 1.4s ease forwards;
+}
+
+.mog-flash-crit {
+  background: radial-gradient(circle, rgba(255, 208, 0, 0.3), transparent 65%);
+}
+
+.mogged-splash {
+  width: min(85%, 240px);
+  height: auto;
+  filter: drop-shadow(0 0 16px var(--pink));
+  animation: mog-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mog-duel-scores {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.08em;
+}
+
+.mog-you { color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+.mog-them { color: #888; }
+.mog-vs { font-size: 0.8rem; color: var(--pink); opacity: 0.8; }
+
+.mog-fail {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1.4rem;
+  letter-spacing: 0.14em;
+  color: #888;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
+.mog-rival {
+  margin: 0;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  opacity: 0.85;
+}
+
+@keyframes mog-in {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes mog-pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
