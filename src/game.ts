@@ -132,7 +132,7 @@ export type BattleTickResult = {
 
 export const ACTIONS = {
   primp: {
-    label: "ENHANCE",
+    label: "PRIMP",
     energy: 15,
     glamour: 3,
     makeup: 6,
@@ -141,7 +141,7 @@ export const ACTIONS = {
     fame: 0,
   },
   shop: {
-    label: "OUTFIT",
+    label: "SHOP",
     energy: 10,
     glamour: 0,
     makeup: 0,
@@ -150,7 +150,7 @@ export const ACTIONS = {
     fame: 0,
   },
   strut: {
-    label: "SPOTLIGHT",
+    label: "STRUT",
     energy: 20,
     glamour: 0,
     makeup: 0,
@@ -160,10 +160,68 @@ export const ACTIONS = {
   },
 } as const;
 
+export type CardRarity = "N" | "R" | "SR" | "UR";
+
+export type SceneKey = "shopping" | "runway" | "vip" | "gala";
+
+export const SCENE_FOR_CHAPTER: SceneKey[] = [
+  "shopping",
+  "runway",
+  "vip",
+  "gala",
+  "gala",
+  "runway",
+  "vip",
+  "gala",
+];
+
+export type MogResult = {
+  playerScore: number;
+  rivalScore: number;
+  mogged: boolean;
+  rivalName: string;
+};
+
 export type ActionKey = keyof typeof ACTIONS;
 
 export function combatPower(player: Player): number {
   return player.glamour + player.makeup + player.fashion;
+}
+
+/** Face-card glam score — weighted for mog duels */
+export function mogScore(player: Player): number {
+  return Math.floor(player.glamour * 1.1 + player.makeup * 1.2 + player.fashion * 1.0);
+}
+
+export function cardRarity(power: number): CardRarity {
+  if (power >= 120) return "UR";
+  if (power >= 60) return "SR";
+  if (power >= 25) return "R";
+  return "N";
+}
+
+export function sceneForChapter(chapter: number): SceneKey {
+  return SCENE_FOR_CHAPTER[Math.min(chapter - 1, SCENE_FOR_CHAPTER.length - 1)] ?? "shopping";
+}
+
+const MOG_RIVALS = [
+  "Basic B",
+  "Mid-Tier Karen",
+  "Try-Hard Influencer",
+  "Runway Wannabe",
+  "Has-Been It-Girl",
+];
+
+export function mogDuel(player: Player, stage = player.stage): MogResult {
+  const playerScore = mogScore(player);
+  const rivalScore = Math.max(8, Math.floor(stage * 4.5 + Math.random() * 12));
+  const rivalName = MOG_RIVALS[Math.min(Math.floor(stage / 3), MOG_RIVALS.length - 1)];
+  return {
+    playerScore,
+    rivalScore,
+    mogged: playerScore >= rivalScore,
+    rivalName,
+  };
 }
 
 export function stageInfo(stage: number): StageInfo {
