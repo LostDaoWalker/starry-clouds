@@ -1175,3 +1175,193 @@
     max-height: 3.2rem;
   }
 }
+
+/* ── Face cards (cross-pollinated gacha × idle RPG) ── */
+.face-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 100%;
+  max-width: 88px;
+}
+
+.face-card-compact {
+  max-width: 72px;
+  margin-bottom: 0.1rem;
+}
+
+.face-card-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  overflow: hidden;
+  border-radius: 4px;
+  filter: drop-shadow(0 2px 8px rgba(255, 45, 138, 0.35));
+}
+
+.face-card-frame .sprite-portrait,
+.face-card-scene {
+  position: absolute;
+  inset: 12% 10% 14%;
+  width: 80%;
+  height: auto;
+  max-height: 78%;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 2px;
+}
+
+.face-card-tier {
+  position: absolute;
+  top: 4%;
+  right: 8%;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 6px currentColor, 0 1px 3px #000;
+  z-index: 2;
+}
+
+.face-card-ur .face-card-frame {
+  filter: drop-shadow(0 0 10px rgba(255, 45, 138, 0.6));
+}
+
+.face-card-stats {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.face-stat {
+  display: grid;
+  grid-template-columns: 1.4em 1fr 1.4em;
+  align-items: center;
+  gap: 0.1rem;
+  font-size: 0.42rem;
+}
+
+.face-stat-label {
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.face-stat-track {
+  height: 4px;
+  background: #1a0a10;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.face-stat-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.25s ease;
+}
+
+.face-stat-val {
+  text-align: right;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.face-card-br {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.55rem;
+  color: var(--gold);
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+.class-card .face-card {
+  max-width: 100%;
+}
+
+.class-card .face-card-compact {
+  max-width: 100%;
+}
+
+/* ── Mog flash overlay ── */
+.mog-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  pointer-events: none;
+  animation: mog-pop 1.2s ease forwards;
+}
+
+@keyframes mog-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  15% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+}
+
+.mog-splash {
+  width: min(85%, 280px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(255, 45, 138, 0.7));
+}
+
+.mog-delta {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 1rem;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 12px var(--pink), 0 2px 4px #000;
+}
+
+/* ── Action scene vignette (shop / strut) ── */
+.action-scene-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  pointer-events: none;
+  animation: scene-fade 1.4s ease forwards;
+}
+
+@keyframes scene-fade {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.action-scene-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, #000 20%, transparent 75%);
+}

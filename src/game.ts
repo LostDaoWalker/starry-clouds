@@ -117,6 +117,10 @@ export type CombatState = {
   stage: number;
 };
 
+export type FaceCardTier = "C" | "B" | "A" | "S" | "UR";
+
+export type MogVerdict = "MOGGED" | "SLAYED" | "BARELY";
+
 export type BattleTickResult = {
   player: Player;
   combat: CombatState;
@@ -127,6 +131,8 @@ export type BattleTickResult = {
   waveCleared: boolean;
   stageCleared: boolean;
   stars: number;
+  mogDelta: number;
+  mogVerdict: MogVerdict | null;
   log: string;
 };
 
@@ -164,6 +170,25 @@ export type ActionKey = keyof typeof ACTIONS;
 
 export function combatPower(player: Player): number {
   return player.glamour + player.makeup + player.fashion;
+}
+
+export function faceCardTier(player: Player): FaceCardTier {
+  const br = combatPower(player);
+  if (br >= 200) return "UR";
+  if (br >= 120) return "S";
+  if (br >= 70) return "A";
+  if (br >= 35) return "B";
+  return "C";
+}
+
+export function mogDelta(power: number, enemy: Enemy): number {
+  return power - enemy.power;
+}
+
+export function mogVerdict(delta: number): MogVerdict {
+  if (delta >= 15) return "MOGGED";
+  if (delta >= 0) return "SLAYED";
+  return "BARELY";
 }
 
 export function stageInfo(stage: number): StageInfo {
@@ -292,9 +317,13 @@ export function battleTick(
   let stars = 0;
   let waveCleared = false;
   let stageCleared = false;
+  let mog = 0;
+  let verdict: MogVerdict | null = null;
   let log = "";
 
   if (killed) {
+    mog = mogDelta(power, combat.enemy);
+    verdict = mogVerdict(mog);
     if (combat.wave < combat.totalWaves) {
       const nextWave = combat.wave + 1;
       const enemy = enemyForWave(combat.stage, nextWave, combat.totalWaves);
@@ -320,7 +349,8 @@ export function battleTick(
       nextCombat = newCombatState(nextPlayer.stage);
       stageCleared = true;
       const bossTag = combat.enemy.isBoss ? " BOSS DOWN!" : "";
-      log = `★${stars} ${stageLabel(player.stage)} cleared${bossTag} +✦${loot.luster} +★${loot.fame}`;
+      const mogTag = verdict === "MOGGED" ? " MOGGED!" : "";
+      log = `★${stars} ${stageLabel(player.stage)} cleared${bossTag}${mogTag} +✦${loot.luster} +★${loot.fame}`;
     }
   } else {
     const verbs = crit ? ["CRIT", "SLAY", "DEVASTATE"] : ["hit", "strike", "slash"];
@@ -338,6 +368,8 @@ export function battleTick(
     waveCleared,
     stageCleared,
     stars,
+    mogDelta: mog,
+    mogVerdict: verdict,
     log,
   };
 }
