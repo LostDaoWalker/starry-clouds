@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BottomDock } from "./components/BottomDock";
+import { FaceCard } from "./components/FaceCard";
+import { MogMeter } from "./components/MogMeter";
 import { InfoBar } from "./components/InfoBar";
 import { TabNav } from "./components/TabNav";
 import { ClassSelect } from "./components/ClassSelect";
@@ -59,6 +61,7 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
   const [log, setLog] = useState<string[]>(["Auto-battle engaged. Clear stages for loot!"]);
   const [lastStars, setLastStars] = useState(0);
+  const [lastMogged, setLastMogged] = useState(false);
   const combatRef = useRef<CombatState | null>(null);
   combatRef.current = combat;
 
@@ -122,12 +125,13 @@ export default function App() {
         const result = battleTick(current, c, playerClass);
         combatRef.current = result.combat;
         setCombat(result.combat);
-        spawnDamage(result.damage, result.crit);
+        spawnDamage(result.damage, result.crit, result.mogTier === "mogged");
         if (!result.killed) triggerHit();
         setLog((lines) => [result.log, ...lines].slice(0, MAX_LOG));
 
         if (result.stageCleared) {
           setLastStars(result.stars);
+          setLastMogged(result.mogTier === "mogged");
           triggerVictory();
           void savePlayer(result.player).catch(() => undefined);
         } else if (result.waveCleared) {
@@ -165,7 +169,7 @@ export default function App() {
       setPlayer(next);
       setLog((lines) =>
         [
-          `${ACTIONS[action].label} — BR +${ACTIONS[action].glamour + ACTIONS[action].makeup + ACTIONS[action].fashion}!`,
+          `${ACTIONS[action].label} — Face Card +${ACTIONS[action].glamour + ACTIONS[action].makeup + ACTIONS[action].fashion}!`,
           ...lines,
         ].slice(0, MAX_LOG)
       );
@@ -186,7 +190,9 @@ export default function App() {
 
   const base = import.meta.env.BASE_URL;
   const themeStyle = {
-    "--arena-bg": `url(${base}ui/arena-bg.jpg)`,
+    "--arena-bg": `url(${base}ui/arena-glam.jpg)`,
+    "--face-card-frame": `url(${base}ui/face-card-frame.png)`,
+    "--mog-badge": `url(${base}ui/mog-badge.png)`,
     "--ui-corner": `url(${base}ui/ui-corner.png)`,
     "--ui-parchment": `url(${base}ui/ui-parchment.jpg)`,
     "--ui-stone-bar": `url(${base}ui/ui-stone-bar.jpg)`,
@@ -265,9 +271,12 @@ export default function App() {
             </div>
           )}
 
-          <VictoryFlash active={victoryFlash} />
+          <VictoryFlash active={victoryFlash} mogged={lastMogged} />
           <HitFlash active={enemyHit} />
           <DamageFloaters floaters={floaters} />
+
+          <FaceCard player={live} />
+          <MogMeter player={live} enemy={combat.enemy} />
 
           <QuestTracker
             stage={live.stage}

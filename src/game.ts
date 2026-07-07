@@ -17,10 +17,10 @@ export const CLASSES: {
   label: string;
   tagline: string;
 }[] = [
-  { key: "diva", label: "DIVA", tagline: "Crit queen — burst damage" },
-  { key: "model", label: "MODEL", tagline: "Steady DPS — pierce armor" },
-  { key: "dancer", label: "DANCER", tagline: "Double-hit rhythm" },
-  { key: "streamer", label: "STREAMER", tagline: "Bonus loot on kills" },
+  { key: "diva", label: "DIVA", tagline: "Crit queen — mog burst" },
+  { key: "model", label: "MODEL", tagline: "Steady serve — pierce rivals" },
+  { key: "dancer", label: "DANCER", tagline: "Double strut hits" },
+  { key: "streamer", label: "STREAMER", tagline: "Bonus luster on kills" },
 ];
 
 export const MAX_ENERGY = 100;
@@ -127,12 +127,13 @@ export type BattleTickResult = {
   waveCleared: boolean;
   stageCleared: boolean;
   stars: number;
+  mogTier: MogTier;
   log: string;
 };
 
 export const ACTIONS = {
   primp: {
-    label: "ENHANCE",
+    label: "PRIMP",
     energy: 15,
     glamour: 3,
     makeup: 6,
@@ -141,7 +142,7 @@ export const ACTIONS = {
     fame: 0,
   },
   shop: {
-    label: "OUTFIT",
+    label: "SHOP",
     energy: 10,
     glamour: 0,
     makeup: 0,
@@ -150,7 +151,7 @@ export const ACTIONS = {
     fame: 0,
   },
   strut: {
-    label: "SPOTLIGHT",
+    label: "STRUT",
     energy: 20,
     glamour: 0,
     makeup: 0,
@@ -161,6 +162,32 @@ export const ACTIONS = {
 } as const;
 
 export type ActionKey = keyof typeof ACTIONS;
+
+export type MogTier = "mogged" | "serve" | "mid";
+
+export const MOG_TIER_LABEL: Record<MogTier, string> = {
+  mogged: "MOGGED",
+  serve: "SERVED",
+  mid: "MID",
+};
+
+/** Enemy face rating — what BR you need to mog them. */
+export function enemyFaceRating(enemy: Enemy): number {
+  return enemy.power;
+}
+
+export function mogTier(power: number, enemy: Enemy): MogTier {
+  const ratio = power / Math.max(1, enemyFaceRating(enemy));
+  if (ratio >= 1.25) return "mogged";
+  if (ratio >= 0.85) return "mid";
+  return "serve";
+}
+
+function mogDamageMult(tier: MogTier): number {
+  if (tier === "mogged") return 1.35;
+  if (tier === "serve") return 0.75;
+  return 1;
+}
 
 export function combatPower(player: Player): number {
   return player.glamour + player.makeup + player.fashion;
@@ -273,15 +300,17 @@ export function battleTick(
   playerClass: PlayerClass
 ): BattleTickResult {
   const power = combatPower(player);
+  const tier = mogTier(power, combat.enemy);
   const crit = Math.random() < classCritChance(playerClass);
   const doubleHit = playerClass === "dancer" && Math.random() < 0.3;
 
   let damage = rollDamage(power, combat.enemy.power, crit);
+  damage = Math.floor(damage * mogDamageMult(tier));
   if (playerClass === "model") {
     damage = Math.floor(damage * 1.15);
   }
   if (doubleHit) {
-    damage += rollDamage(power, combat.enemy.power, false);
+    damage += Math.floor(rollDamage(power, combat.enemy.power, false) * mogDamageMult(tier));
   }
 
   let hp = Math.max(0, combat.hp - damage);
@@ -323,9 +352,15 @@ export function battleTick(
       log = `★${stars} ${stageLabel(player.stage)} cleared${bossTag} +✦${loot.luster} +★${loot.fame}`;
     }
   } else {
-    const verbs = crit ? ["CRIT", "SLAY", "DEVASTATE"] : ["hit", "strike", "slash"];
-    const verb = verbs[Math.floor(Math.random() * verbs.length)];
-    log = `${verb} ${combat.enemy.name} for ${damage}${doubleHit ? " x2" : ""} (${hp}/${combat.enemy.maxHp})`;
+    const mogVerbs =
+      tier === "mogged"
+        ? ["MOGGED", "HUMBLED", "OUTSHONE"]
+        : tier === "serve"
+          ? ["edged", "clutched", "barely beat"]
+          : ["hit", "strike", "slash"];
+    const verb = mogVerbs[Math.floor(Math.random() * mogVerbs.length)];
+    const tierTag = tier === "mogged" ? " ✦" : tier === "serve" ? " …" : "";
+    log = `${verb} ${combat.enemy.name} for ${damage}${doubleHit ? " x2" : ""}${tierTag} (${hp}/${combat.enemy.maxHp})`;
   }
 
   return {
@@ -338,6 +373,7 @@ export function battleTick(
     waveCleared,
     stageCleared,
     stars,
+    mogTier: tier,
     log,
   };
 }
