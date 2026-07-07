@@ -19,14 +19,14 @@ export function QuestTracker({ stage, power, wave, totalWaves }: QuestTrackerPro
         ACTIVE QUEST
       </p>
       <p className="quest-objective">
-        Defeat foes at <strong>{stageLabel(stage)}</strong>
+        Mog rivals at <strong>{stageLabel(stage)}</strong>
       </p>
       <p className="quest-lore">{lore}</p>
       <p className="quest-detail">
         Wave {wave}/{totalWaves}
         {info.isBoss ? " · RAID BOSS" : ""}
       </p>
-      <p className="quest-br">Required BR ~{Math.max(1, info.global * 8)} · Yours {power}</p>
+      <p className="quest-br">Face Card ~{Math.max(1, info.global * 8)} · Yours {power}</p>
     </aside>
   );
 }

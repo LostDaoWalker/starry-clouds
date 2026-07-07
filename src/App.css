@@ -567,6 +567,205 @@
   color: var(--gold);
 }
 
+/* Face card — left HUD panel */
+.face-card {
+  position: absolute;
+  top: 3.8rem;
+  left: 0.3rem;
+  z-index: 5;
+  width: 6.4rem;
+  padding: 0.45rem 0.4rem 0.35rem;
+  border: 2px solid rgba(255, 45, 138, 0.55);
+  background:
+    linear-gradient(145deg, rgba(255, 45, 138, 0.12), rgba(0, 229, 255, 0.08)),
+    rgba(8, 6, 12, 0.92);
+  box-shadow:
+    0 0 16px rgba(255, 45, 138, 0.25),
+    inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.face-card-frame {
+  position: absolute;
+  inset: -4px;
+  background: var(--face-card-frame) center / 100% 100% no-repeat;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.face-card-title {
+  margin: 0 0 0.25rem;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  color: var(--pink);
+  text-shadow: 0 0 8px rgba(255, 45, 138, 0.6);
+}
+
+.face-card-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.face-stat-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 0.05rem 0.2rem;
+  align-items: center;
+}
+
+.face-stat-label {
+  grid-column: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.48rem;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  color: var(--white);
+  opacity: 0.9;
+}
+
+.face-stat-val {
+  grid-column: 2;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.72rem;
+  color: var(--gold);
+}
+
+.face-stat-track {
+  grid-column: 1 / -1;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.face-stat-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.face-stat-glamour {
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+}
+
+.face-stat-makeup {
+  background: linear-gradient(90deg, #c2185b, var(--pink));
+}
+
+.face-stat-fashion {
+  background: linear-gradient(90deg, #00838f, var(--cyan));
+}
+
+/* Mog meter — center-top comparison */
+.mog-meter {
+  position: absolute;
+  top: 2.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  width: min(52%, 168px);
+  padding: 0.25rem 0.4rem;
+  border: 1px solid rgba(255, 208, 0, 0.35);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.mog-meter-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.15rem;
+}
+
+.mog-meter-label {
+  font-size: 0.48rem;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+  color: var(--cyan);
+}
+
+.mog-tier-badge {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  padding: 0.02rem 0.25rem;
+  border-radius: 2px;
+}
+
+.mog-tier-mogged .mog-tier-badge,
+.mog-tier-badge.mog-tier-mogged {
+  color: #fff;
+  background: var(--pink);
+  box-shadow: 0 0 10px rgba(255, 45, 138, 0.6);
+}
+
+.mog-tier-mid .mog-tier-badge,
+.mog-tier-badge.mog-tier-mid {
+  color: var(--gold);
+  border: 1px solid var(--gold);
+}
+
+.mog-tier-serve .mog-tier-badge,
+.mog-tier-badge.mog-tier-serve {
+  color: #888;
+  border: 1px solid #555;
+}
+
+.mog-bar-row {
+  display: grid;
+  grid-template-columns: 1.6rem 1fr 1.4rem;
+  align-items: center;
+  gap: 0.15rem;
+  margin-bottom: 0.1rem;
+}
+
+.mog-bar-name {
+  font-size: 0.45rem;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  opacity: 0.75;
+}
+
+.mog-bar-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.mog-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.mog-bar-you {
+  background: linear-gradient(90deg, var(--pink), var(--gold));
+}
+
+.mog-bar-them {
+  background: linear-gradient(90deg, #444, #888);
+}
+
+.mog-tier-mogged .mog-bar-you {
+  box-shadow: 0 0 8px rgba(255, 45, 138, 0.5);
+}
+
+.mog-bar-val {
+  font-size: 0.5rem;
+  font-weight: 700;
+  text-align: right;
+  color: var(--gold);
+}
+
 /* Battle lane */
 .arena-battle {
   position: relative;
@@ -787,6 +986,12 @@
   font-size: 1.5rem;
 }
 
+.damage-mogged {
+  color: var(--cyan);
+  font-size: 1.35rem;
+  text-shadow: 0 0 12px var(--cyan), 0 0 6px var(--pink), 2px 2px 0 #000;
+}
+
 @keyframes float-up {
   0% {
     opacity: 1;
@@ -831,6 +1036,15 @@
   letter-spacing: 0.18em;
   color: var(--gold);
   text-shadow: 0 0 20px var(--gold), 2px 2px 0 #000;
+}
+
+.victory-mogged {
+  background: radial-gradient(circle, rgba(255, 45, 138, 0.45), rgba(0, 229, 255, 0.15) 55%, transparent 70%);
+}
+
+.victory-mogged .victory-text {
+  color: var(--pink);
+  text-shadow: 0 0 24px var(--pink), 0 0 12px var(--cyan), 2px 2px 0 #000;
 }
 
 @keyframes victory {
@@ -979,13 +1193,13 @@
 }
 
 .action-primp .action-ring {
-  background: radial-gradient(circle at 35% 30%, #4dffff, #006677);
+  background: radial-gradient(circle at 35% 30%, #ff6bb8, #880040);
 }
 .action-shop .action-ring {
   background: radial-gradient(circle at 35% 30%, #ffe566, #886600);
 }
 .action-strut .action-ring {
-  background: radial-gradient(circle at 35% 30%, #ff6bb8, #880040);
+  background: radial-gradient(circle at 35% 30%, #4dffff, #006677);
 }
 
 /* Bottom dock — LoA system bar */

@@ -4,6 +4,7 @@ type Floater = {
   id: number;
   value: number;
   crit: boolean;
+  mogged: boolean;
   x: number;
   y: number;
 };
@@ -13,11 +14,11 @@ let floaterId = 0;
 export function useDamageFloaters() {
   const [floaters, setFloaters] = useState<Floater[]>([]);
 
-  const spawn = (damage: number, crit: boolean) => {
+  const spawn = (damage: number, crit: boolean, mogged = false) => {
     const id = ++floaterId;
     const x = 52 + Math.random() * 22;
     const y = 22 + Math.random() * 18;
-    setFloaters((f) => [...f, { id, value: damage, crit, x, y }]);
+    setFloaters((f) => [...f, { id, value: damage, crit, mogged, x, y }]);
     window.setTimeout(() => {
       setFloaters((f) => f.filter((x) => x.id !== id));
     }, 950);
@@ -32,10 +33,10 @@ export function DamageFloaters({ floaters }: { floaters: Floater[] }) {
       {floaters.map((f) => (
         <span
           key={f.id}
-          className={`damage-num ${f.crit ? "damage-crit" : ""}`}
+          className={`damage-num ${f.crit ? "damage-crit" : ""} ${f.mogged ? "damage-mogged" : ""}`}
           style={{ left: `${f.x}%`, top: `${f.y}%` }}
         >
-          {f.crit ? "CRIT! " : ""}-{f.value}
+          {f.mogged ? "MOG! " : f.crit ? "CRIT! " : ""}-{f.value}
         </span>
       ))}
     </div>
@@ -53,11 +54,11 @@ export function useVictoryFlash() {
   return { flash, trigger };
 }
 
-export function VictoryFlash({ active }: { active: boolean }) {
+export function VictoryFlash({ active, mogged = false }: { active: boolean; mogged?: boolean }) {
   if (!active) return null;
   return (
-    <div className="victory-flash" aria-hidden>
-      <span className="victory-text">VICTORY!</span>
+    <div className={`victory-flash ${mogged ? "victory-mogged" : ""}`} aria-hidden>
+      <span className="victory-text">{mogged ? "MOGGED!" : "VICTORY!"}</span>
     </div>
   );
 }
