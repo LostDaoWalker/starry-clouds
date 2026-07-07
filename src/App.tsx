@@ -12,7 +12,14 @@ import {
   useVictoryFlash,
 } from "./components/DamageFloater";
 import { EnemyActor } from "./components/EnemyActor";
+import { FaceCard } from "./components/FaceCard";
 import { GameIcon } from "./components/GameIcon";
+import {
+  ActionSceneVignette,
+  MogFlash,
+  useActionScene,
+  useMogFlash,
+} from "./components/MogFlash";
 import { QuestTracker } from "./components/QuestTracker";
 import { SpriteActor } from "./components/SpriteActor";
 import { StageProgress } from "./components/StageProgress";
@@ -35,6 +42,7 @@ import {
   stageLabel,
 } from "./game";
 import { loadPlayerClass, savePlayerClass } from "./lib/playerClass";
+import { actionSceneUrl, arenaSceneUrl } from "./lib/scenes";
 import { ensurePlayer, lastActiveAt, savePlayer, touchActive } from "./lib/supabase";
 import "./App.css";
 
@@ -65,6 +73,8 @@ export default function App() {
   const { floaters, spawn: spawnDamage } = useDamageFloaters();
   const { flash: victoryFlash, trigger: triggerVictory } = useVictoryFlash();
   const { hit: enemyHit, trigger: triggerHit } = useHitFlash();
+  const { flash: mogFlash, trigger: triggerMog } = useMogFlash();
+  const { sceneUrl: actionScene, show: showActionScene } = useActionScene();
 
   const flashToast = useCallback((message: string) => {
     setToast(message);
@@ -129,9 +139,11 @@ export default function App() {
         if (result.stageCleared) {
           setLastStars(result.stars);
           triggerVictory();
+          if (result.mogVerdict) triggerMog(result.mogVerdict, result.mogDelta);
           void savePlayer(result.player).catch(() => undefined);
         } else if (result.waveCleared) {
           triggerVictory();
+          if (result.mogVerdict) triggerMog(result.mogVerdict, result.mogDelta);
         }
 
         return result.player;
@@ -174,6 +186,8 @@ export default function App() {
         const saved = await savePlayer(next);
         setPlayer(saved);
         flashToast(`${ACTIONS[action].label}!`);
+        const scene = actionSceneUrl(action);
+        if (scene) showActionScene(scene);
       } catch (e) {
         setPlayer(refreshed);
         flashToast(e instanceof Error ? e.message : "Save failed");
@@ -181,12 +195,13 @@ export default function App() {
         setBusy(null);
       }
     },
-    [player, busy, flashToast]
+    [player, busy, flashToast, showActionScene]
   );
 
   const base = import.meta.env.BASE_URL;
+  const chapter = player ? stageInfo(regenEnergy(player).stage).chapter : 1;
   const themeStyle = {
-    "--arena-bg": `url(${base}ui/arena-bg.jpg)`,
+    "--arena-bg": `url(${arenaSceneUrl(chapter)})`,
     "--ui-corner": `url(${base}ui/ui-corner.png)`,
     "--ui-parchment": `url(${base}ui/ui-parchment.jpg)`,
     "--ui-stone-bar": `url(${base}ui/ui-stone-bar.jpg)`,
@@ -218,7 +233,6 @@ export default function App() {
   const live = regenEnergy(player);
   const info = stageInfo(live.stage);
   const power = combatPower(live);
-  const classLabel = playerClass?.toUpperCase() ?? "???";
   const enemyHpPct = hpPercent(combat.hp, combat.enemy.maxHp);
 
   return (
@@ -266,6 +280,8 @@ export default function App() {
           )}
 
           <VictoryFlash active={victoryFlash} />
+          <MogFlash flash={mogFlash} />
+          <ActionSceneVignette sceneUrl={actionScene} />
           <HitFlash active={enemyHit} />
           <DamageFloaters floaters={floaters} />
 
@@ -278,12 +294,9 @@ export default function App() {
 
           <div className="arena-battle">
             <div className="arena-side arena-player">
-              <div className="fighter-card">
-                <p className="arena-label">{classLabel}</p>
-                <div className="hp-bar hp-player hp-ornate">
-                  <div className="hp-fill hp-fill-player" style={{ width: "100%" }} />
-                </div>
-              </div>
+              {playerClass && (
+                <FaceCard playerClass={playerClass} player={live} compact />
+              )}
               <div className="hero-actor-wrap">
                 <div className="hero-aura" aria-hidden />
                 {playerClass && <SpriteActor playerClass={playerClass} />}
